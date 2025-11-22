@@ -4,14 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VoxDrop – Your Anonymous Voice Box</title>
-  <meta property="og:title" content="You got a VoxDrop!" />
-  <meta property="og:description" content="Someone sent you an anonymous animated voice message." />
-  <meta name="twitter:card" content="player" />
-
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
   <style>
     body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; }
     .mic-btn-active { animation: pulse-red 1.5s infinite; }
@@ -20,70 +15,121 @@
 </head>
 <body class="min-h-screen">
 
-<div id="app" class="max-w-lg mx-auto p-6 text-center">
+<div id="app">
 
-  <!-- Landing / Register -->
-  <div id="landing" class="space-y-10">
-    <h1 class="text-6xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">VoxDrop</h1>
-    <p class="text-xl text-gray-300">Get your own anonymous voice box</p>
-    <div class="space-y-4">
-      <input id="username" placeholder="Choose username" class="p-4 rounded-xl bg-gray-800 text-white w-full text-lg">
-      <button onclick="register()" class="w-full py-5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl font-bold text-xl shadow-lg">
-        Create My Box
-      </button>
+  <!-- Auth Screen -->
+  <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <div class="bg-gray-800/50 backdrop-blur-xl rounded-3xl p-8 border border-gray-700">
+        <h1 class="text-5xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">VoxDrop</h1>
+        <p class="text-gray-400 mb-8">Your anonymous voice box</p>
+        
+        <div id="authTabs" class="flex gap-4 mb-8 border-b border-gray-700">
+          <button onclick="showTab('login')" id="loginTab" class="pb-4 font-bold border-b-2 border-pink-500">Login</button>
+          <button onclick="showTab('register')" id="registerTab" class="pb-4 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-300">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="space-y-4">
+          <input id="loginUsername" placeholder="Username" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <input id="loginPassword" type="password" placeholder="Password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <button onclick="login()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 rounded-lg font-bold text-lg transition">Login</button>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="space-y-4 hidden">
+          <input id="regUsername" placeholder="Choose username" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <input id="regPassword" type="password" placeholder="Password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <input id="regPassword2" type="password" placeholder="Confirm password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <button onclick="register()" class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-bold text-lg transition">Create Account</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Your Link After Register -->
-  <div id="myLink" class="hidden space-y-10">
-    <h2 class="text-5xl font-bold bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">Ready!</h2>
-    <div id="shareUrl" class="p-5 bg-gray-800 rounded-2xl font-mono text-xl break-all"></div>
-    <button onclick="shareLink()" class="w-full py-5 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold text-xl">
-      Share to X, TikTok, Instagram
-    </button>
-    <a href="/inbox" class="block py-4 bg-purple-600 hover:bg-purple-700 rounded-xl font-bold text-xl">Open Inbox</a>
-  </div>
+  <!-- Main App -->
+  <div id="mainApp" class="hidden min-h-screen">
+    <!-- Header -->
+    <div class="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">VoxDrop</h1>
+          <p id="userDisplay" class="text-sm text-gray-400"></p>
+        </div>
+        <div class="flex gap-4 items-center">
+          <button onclick="showTab('inbox')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold transition">Inbox</button>
+          <button onclick="showTab('share')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold transition">My Link</button>
+          <button onclick="logout()" class="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-semibold transition">Logout</button>
+        </div>
+      </div>
+    </div>
 
-  <!-- Recording Page (@username) -->
-  <div id="recording" class="hidden space-y-8">
-    <h2 class="text-4xl font-bold">Drop a voice to</h2>
-    <p class="text-5xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent" id="targetName"></p>
+    <!-- Inbox Tab -->
+    <div id="inboxTab" class="max-w-7xl mx-auto p-6">
+      <h2 class="text-4xl font-bold mb-8">Your Voice Box</h2>
+      <div id="messagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Messages load here -->
+      </div>
+      <div id="emptyState" class="text-center py-16">
+        <p class="text-2xl text-gray-400">No drops yet</p>
+        <p class="text-gray-500 mt-2">Share your link to receive anonymous voice messages</p>
+      </div>
+    </div>
 
-    <select id="character" class="p-4 rounded-xl bg-gray-800 text-white w-full text-lg">
-      <option value="0">Blue Robot</option>
-      <option value="1">Pink Alien</option>
-      <option value="2">Green Monster</option>
-      <option value="3">Yellow Blob</option>
-    </select>
+    <!-- Share Tab -->
+    <div id="shareTab" class="hidden max-w-7xl mx-auto p-6">
+      <h2 class="text-4xl font-bold mb-8">Share Your Link</h2>
+      <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700 max-w-2xl">
+        <p class="text-gray-400 mb-4">Share this link with anyone to receive anonymous voice messages:</p>
+        <div class="flex gap-3">
+          <input id="shareUrl" readonly class="flex-1 p-4 rounded-lg bg-gray-700 text-white font-mono text-lg">
+          <button onclick="copyShareLink()" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg font-bold transition">Copy</button>
+        </div>
+        <button onclick="shareLink()" class="w-full mt-4 py-4 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 rounded-lg font-bold text-lg transition">Share to Social</button>
+      </div>
+    </div>
 
-    <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-2xl shadow-2xl border-4 border-gray-700"></canvas>
+    <!-- Recording Page -->
+    <div id="recordingTab" class="hidden min-h-screen flex items-center justify-center p-6">
+      <div class="max-w-2xl w-full">
+        <h2 class="text-4xl font-bold text-center mb-2">Drop a voice to</h2>
+        <p class="text-5xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent text-center mb-8" id="targetName"></p>
 
-    <button id="micBtn" class="w-28 h-28 bg-pink-600 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition">
-      <svg class="w-14 h-14" fill="white" viewBox="0 0 24 24">
-        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-      </svg>
-    </button>
-    <p id="status" class="text-lg text-gray-300">Hold to record</p>
+        <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700 space-y-6">
+          <div>
+            <label class="block text-gray-300 mb-3 font-semibold">Choose Avatar</label>
+            <select id="character" class="w-full p-4 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+              <option value="0">🤖 Blue Robot</option>
+              <option value="1">👽 Pink Alien</option>
+              <option value="2">👹 Green Monster</option>
+              <option value="3">💛 Yellow Blob</option>
+            </select>
+          </div>
 
-    <button onclick="location.href='/'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl font-bold text-xl">
-      Get Your Own Box
-    </button>
-  </div>
+          <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-700"></canvas>
 
-  <!-- Inbox -->
-  <div id="inbox" class="hidden space-y-8">
-    <h2 class="text-4xl font-bold">Your Voice Box</h2>
-    <div id="messages" class="space-y-6"></div>
-    <p id="empty" class="text-gray-500 text-xl hidden">No drops yet — share your link!</p>
+          <div class="flex flex-col items-center gap-4">
+            <button id="micBtn" class="w-32 h-32 bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition transform">
+              <svg class="w-16 h-16" fill="white" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+              </svg>
+            </button>
+            <p id="status" class="text-lg text-gray-300 font-semibold">Hold to record</p>
+          </div>
+
+          <button onclick="location.href='/'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg transition">Get Your Own Box</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>
 
 <script>
-  const GEMINI_API_KEY = "AIzaSyA2ipSGoCvTQpiMr25wll5keqXvlFepy0g"; // ← CHANGE THIS!
+  const GEMINI_API_KEY = "AIzaSyA2ipSGoCvTQpiMr25wll5keqXvlFepy0g";
 
+  let currentUser = null;
   let targetUsername = null;
-  let currentUsername = null;
   let isRecording = false;
   let recorder, stream;
 
@@ -115,54 +161,136 @@
   function animate() { draw(); requestAnimationFrame(animate); }
   animate();
 
+  function showTab(tab) {
+    document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
+    document.getElementById(tab + 'Tab').classList.remove('hidden');
+    
+    document.querySelectorAll('[id$="Tab"]').forEach(btn => btn.classList.remove('border-pink-500', 'text-white'));
+    document.getElementById(tab + 'Tab')?.classList.add('border-pink-500', 'text-white');
+    
+    if (tab === 'inbox') loadInbox();
+  }
+
+  function showTab(tab) {
+    if (tab === 'login' || tab === 'register') {
+      document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+      document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+      document.getElementById('loginTab').classList.toggle('border-pink-500', tab === 'login');
+      document.getElementById('registerTab').classList.toggle('border-pink-500', tab === 'register');
+    } else if (currentUser) {
+      document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tab + 'Tab').classList.remove('hidden');
+      if (tab === 'inbox') loadInbox();
+    }
+  }
+
   window.onload = () => {
     const path = location.pathname;
-    if (path === '/' || path === '') document.getElementById('landing').classList.remove('hidden');
-    else if (path === '/inbox') loadInbox();
-    else if (path.startsWith('/@')) {
+    if (path.startsWith('/@')) {
       targetUsername = path.slice(2);
       document.getElementById('targetName').textContent = '@' + targetUsername;
-      document.getElementById('recording').classList.remove('hidden');
+      document.getElementById('recordingTab').classList.remove('hidden');
+      document.getElementById('authScreen').classList.add('hidden');
+    } else if (localStorage.getItem('currentUser')) {
+      currentUser = localStorage.getItem('currentUser');
+      showLoggedIn();
     }
   };
 
-  async function register() {
-    const username = document.getElementById('username').value.trim();
-    if (!username) return alert("Enter username");
-    const res = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username}) });
+  function showLoggedIn() {
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('userDisplay').textContent = '@' + currentUser;
+    document.getElementById('shareUrl').value = location.origin + '/@' + currentUser;
+    showTab('inbox');
+  }
+
+  async function login() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!username || !password) return alert("Enter username and password");
+    
+    const res = await fetch('/api/login', { 
+      method: 'POST', 
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify({username, password}) 
+    });
+    
     if (res.ok) {
-      currentUsername = username;
-      document.getElementById('shareUrl').textContent = location.origin + '/@' + username;
-      document.getElementById('landing').classList.add('hidden');
-      document.getElementById('myLink').classList.remove('hidden');
-      confetti({particleCount: 200, spread: 70});
-    } else alert("Username taken");
+      currentUser = username;
+      localStorage.setItem('currentUser', username);
+      showLoggedIn();
+    } else {
+      alert("Invalid credentials");
+    }
+  }
+
+  async function register() {
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const password2 = document.getElementById('regPassword2').value;
+    
+    if (!username || !password) return alert("Enter username and password");
+    if (password !== password2) return alert("Passwords don't match");
+    
+    const res = await fetch('/api/register', { 
+      method: 'POST', 
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify({username, password}) 
+    });
+    
+    if (res.ok) {
+      currentUser = username;
+      localStorage.setItem('currentUser', username);
+      showLoggedIn();
+    } else {
+      const err = await res.json();
+      alert(err.error || "Registration failed");
+    }
+  }
+
+  function logout() {
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    document.getElementById('mainApp').classList.add('hidden');
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+  }
+
+  function copyShareLink() {
+    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    alert("Link copied!");
   }
 
   function shareLink() {
-    const url = document.getElementById('shareUrl').textContent;
+    const url = document.getElementById('shareUrl').value;
     if (navigator.share) navigator.share({title: "My VoxDrop", url});
-    else navigator.clipboard.writeText(url);
+    else alert("Copy this link: " + url);
   }
 
   async function loadInbox() {
-    if (!currentUsername) { location.href = '/'; return; }
-    const res = await fetch('/api/inbox/' + currentUsername);
+    const res = await fetch('/api/inbox/' + currentUser);
     const messages = await res.json();
-    document.getElementById('inbox').classList.remove('hidden');
-    const list = document.getElementById('messages');
+    const list = document.getElementById('messagesList');
+    const empty = document.getElementById('emptyState');
+    
     if (messages.length === 0) {
-      document.getElementById('empty').classList.remove('hidden');
+      list.innerHTML = '';
+      empty.classList.remove('hidden');
       return;
     }
+    
+    empty.classList.add('hidden');
     list.innerHTML = messages.map(m => `
-      <div class="bg-gray-800 rounded-2xl overflow-hidden shadow-xl">
-        <video src="${m.videoUrl}" controls autoplay loop class="w-full"></video>
-        <div class="p-4">
-          ${m.transcript ? `<p class="text-gray-300 italic">"${m.transcript}"</p>` : ''}
-          <div class="flex gap-3 mt-3">
-            <a href="${m.videoUrl}" download class="flex-1 py-3 bg-green-600 rounded-xl font-bold">Download</a>
-            <button onclick="navigator.clipboard.writeText('${m.videoUrl}')" class="flex-1 py-3 bg-blue-600 rounded-xl font-bold">Copy Link</button>
+      <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
+        <video src="${m.videoUrl}" controls class="w-full aspect-video bg-gray-900"></video>
+        <div class="p-6">
+          ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
+          <p class="text-xs text-gray-500 mb-4">${new Date(m.date).toLocaleString()}</p>
+          <div class="flex gap-3">
+            <a href="${m.videoUrl}" download class="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold text-center transition">Download</a>
+            <button onclick="navigator.clipboard.writeText('${m.videoUrl}')" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">Copy Link</button>
           </div>
         </div>
       </div>
@@ -183,7 +311,7 @@
       isRecording = true;
       micBtn.classList.add('mic-btn-active');
       document.getElementById('status').textContent = "Recording...";
-    } catch (e) { alert("Mic blocked"); }
+    } catch (e) { alert("Microphone blocked"); }
   };
   micBtn.onpointerup = micBtn.onpointerleave = () => {
     if (isRecording) {
@@ -205,7 +333,7 @@
     } catch (err) {
       console.error('Processing error:', err);
       document.getElementById('status').textContent = "Error: " + err.message;
-      alert("Error processing: " + err.message);
+      alert("Error: " + err.message);
     }
   }
 
@@ -215,10 +343,10 @@
     form.append('transcript', transcript);
     const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
     if (res.ok) {
-      alert("Drop sent! Get your own box?");
+      alert("✨ Drop sent!");
       location.href = '/';
     } else {
-      alert("Failed to send drop");
+      alert("Failed to send");
     }
   }
 
@@ -251,10 +379,8 @@
     });
     const json = await res.json();
     if (json.error) throw new Error(json.error.message);
-    
     const data = json.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     if (!data) throw new Error("No audio in response");
-    
     const binaryStr = atob(data);
     const bytes = new Uint8Array(binaryStr.length);
     for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
@@ -268,19 +394,12 @@
       const mediaStream = canvas.captureStream(30);
       const rec = new MediaRecorder(mediaStream);
       const chunks = [];
-      
       rec.ondataavailable = e => chunks.push(e.data);
-      rec.onstop = () => {
-        resolve(new Blob(chunks, {type: 'video/webm'}));
-      };
-      
+      rec.onstop = () => resolve(new Blob(chunks, {type: 'video/webm'}));
       audio.onplay = () => rec.start();
-      audio.onended = () => {
-        setTimeout(() => rec.stop(), 500);
-      };
-      audio.onerror = (e) => reject(new Error("Audio error: " + e));
-      
-      audio.play().catch(err => reject(new Error("Play failed: " + err)));
+      audio.onended = () => setTimeout(() => rec.stop(), 500);
+      audio.onerror = (e) => reject(new Error("Audio error"));
+      audio.play().catch(err => reject(new Error("Play failed")));
     });
   }
 
