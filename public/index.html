@@ -80,7 +80,7 @@
 </div>
 
 <script>
-  const GEMINI_API_KEY = "YOUR_GEMINI_KEY_HERE"; // ← CHANGE THIS!
+  const GEMINI_API_KEY = "AIzaSyBEcPWeIY5neitnrEofI2bWLtkiRTtAIPI"; // ← CHANGE THIS!
 
   let targetUsername = null;
   let currentUsername = null;
@@ -196,11 +196,17 @@
   };
 
   async function processAudio(blob) {
-    const b64 = await blobToBase64(blob);
-    const text = await transcribe(b64);
-    const synth = await synthesize(text, "Kore");
-    const videoBlob = await renderVideo(synth);
-    await send(videoBlob, text);
+    try {
+      const b64 = await blobToBase64(blob);
+      const text = await transcribe(b64);
+      const audioUrl = await synthesize(text);
+      const videoBlob = await renderVideo(audioUrl);
+      await send(videoBlob, text);
+    } catch (err) {
+      console.error('Processing error:', err);
+      document.getElementById('status').textContent = "Error: " + err.message;
+      alert("Error processing: " + err.message);
+    }
   }
 
   async function send(videoBlob, transcript) {
@@ -211,60 +217,91 @@
     if (res.ok) {
       alert("Drop sent! Get your own box?");
       location.href = '/';
+    } else {
+      alert("Failed to send drop");
     }
   }
 
-  // Gemini + Video (same as before)
   async function transcribe(b64) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ contents: [{ parts: [{text: "Transcribe exactly."}, {inlineData: {mimeType: "audio/webm", data: b64}}]}]})
+      body: JSON.stringify({ contents: [{ parts: [{text: "Transcribe this audio exactly."}, {inlineData: {mimeType: "audio/webm", data: b64}}]}]})
     });
     const json = await res.json();
+    if (json.error) throw new Error(json.error.message);
     return json.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
   }
 
   async function synthesize(text) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${GEMINI_API_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ contents: [{ parts: [{text}] }], generationConfig: {responseModalities: ["AUDIO"]}, speechConfig: {voiceConfig: {prebuiltVoiceConfig: {voiceName: "Kore"}}}})
+      body: JSON.stringify({ 
+        contents: [{ parts: [{text}] }], 
+        generationConfig: {responseModalities: ["AUDIO"]}, 
+        speechConfig: {voiceConfig: {prebuiltVoiceConfig: {voiceName: "Kore"}}}
+      })
     });
     const json = await res.json();
-    const data = json.candidates[0].content.parts[0].inlineData.data;
-    const wav = pcmToWav(atob(data), 24000);
+    if (json.error) throw new Error(json.error.message);
+    const data = json.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!data) throw new Error("No audio in response");
+    const binaryStr = atob(data);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+    const wav = pcmToWav(bytes, 24000);
     return URL.createObjectURL(wav);
   }
 
   async function renderVideo(audioUrl) {
-    const audio = new Audio(audioUrl);
-    const dest = new AudioContext().createMediaStreamDestination();
-    const source = new AudioContext().createMediaElementSource(audio);
-    source.connect(dest); source.connect(new AudioContext().destination);
-    const stream = canvas.captureStream(30);
-    stream.addTrack(dest.stream.getAudioTracks()[0]);
-    const rec = new MediaRecorder(stream);
-    const chunks = [];
-    rec.ondataavailable = e => chunks.push(e.data);
-    rec.onstop = () => resolve(new Blob(chunks, {type: 'video/webm'}));
-    audio.play();
-    rec.start();
-    audio.onended = () => setTimeout(() => rec.stop(), 1000);
-    return new Promise(r => { rec.onstop = () => r(new Blob(chunks, {type: 'video/webm'})); });
+    return new Promise((resolve, reject) => {
+      const audio = new Audio(audioUrl);
+      const mediaStream = canvas.captureStream(30);
+      const rec = new MediaRecorder(mediaStream);
+      const chunks = [];
+      
+      rec.ondataavailable = e => chunks.push(e.data);
+      rec.onstop = () => {
+        resolve(new Blob(chunks, {type: 'video/webm'}));
+      };
+      
+      audio.onplay = () => rec.start();
+      audio.onended = () => {
+        setTimeout(() => rec.stop(), 500);
+      };
+      audio.onerror = (e) => reject(new Error("Audio error: " + e));
+      
+      audio.play().catch(err => reject(new Error("Play failed: " + err)));
+    });
   }
 
-  function blobToBase64(b) { return new Promise((r)=> {const a=new FileReader(); a.onload=()=>r(a.result.split(',')[1]); a.readAsDataURL(b);}); }
+  function blobToBase64(b) { 
+    return new Promise((r) => {
+      const a = new FileReader(); 
+      a.onload = () => r(a.result.split(',')[1]); 
+      a.readAsDataURL(b);
+    }); 
+  }
+
   function pcmToWav(pcm, rate) {
     const buffer = new ArrayBuffer(44 + pcm.byteLength);
     const view = new DataView(buffer);
-    const write = (o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
-    write(0,'RIFF'); view.setUint32(4,36+pcm.byteLength,true); write(8,'WAVEfmt '); view.setUint32(16,16,true);
-    view.setUint16(20,1,true); view.setUint16(22,1,true); view.setUint32(24,rate,true); view.setUint32(28,rate*2,true);
-    view.setUint16(32,2,true); view.setUint16(34,16,true); write(36,'data'); view.setUint32(40,pcm.byteLength,true);
-    const pcm16 = new Int16Array(pcm); let offset=44;
-    for(let i=0;i<pcm16.length;i++,offset+=2) view.setInt16(offset,pcm16[i],true);
-    return new Blob([buffer],{type:'audio/wav'});
+    const write = (o, s) => {
+      for(let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i));
+    };
+    write(0, 'RIFF'); 
+    view.setUint32(4, 36 + pcm.byteLength, true); 
+    write(8, 'WAVEfmt '); 
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); 
+    view.setUint16(22, 1, true); 
+    view.setUint32(24, rate, true); 
+    view.setUint32(28, rate * 2, true);
+    view.setUint16(32, 2, true); 
+    view.setUint16(34, 16, true); 
+    write(36, 'data'); 
+    view.setUint32(40, pcm.byteLength, true);
+    return new Blob([buffer], {type:'audio/wav'});
   }
-  function atob(b){return Buffer.from(b,'base64');} // for Node-like in browser
 </script>
 </body>
 </html>
