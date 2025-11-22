@@ -328,8 +328,8 @@
     try {
       const b64 = await blobToBase64(blob);
       const text = await transcribe(b64);
-      const audioUrl = await synthesize(text);
-      const videoBlob = await renderVideo(audioUrl);
+      // Skip TTS for now - just render video with the original audio
+      const videoBlob = await renderVideoWithAudio(blob);
       await send(videoBlob, text);
     } catch (err) {
       console.error('Processing error:', err);
@@ -342,12 +342,19 @@
     const form = new FormData();
     form.append('video', videoBlob, 'drop.webm');
     form.append('transcript', transcript);
-    const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
-    if (res.ok) {
-      alert("✨ Drop sent!");
-      location.href = '/';
-    } else {
-      alert("Failed to send");
+    try {
+      const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
+      const data = await res.json();
+      if (res.ok) {
+        alert("✨ Drop sent!");
+        location.href = '/';
+      } else {
+        alert("Failed to send: " + (data.error || "Unknown error"));
+        document.getElementById('status').textContent = "Error: " + (data.error || "Send failed");
+      }
+    } catch (err) {
+      alert("Network error: " + err.message);
+      document.getElementById('status').textContent = "Error: " + err.message;
     }
   }
 
