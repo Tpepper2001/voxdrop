@@ -233,11 +233,20 @@
   }
 
   async function synthesize(text) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-001:streamGenerateContent?key=${GEMINI_API_KEY}`, {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ 
-        contents: [{ parts: [{text}] }], 
-        generationConfig: {responseModalities: ["AUDIO"]}
+        contents: [{ parts: [{text: text}] }], 
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: "Kore"
+              }
+            }
+          }
+        }
       })
     });
     const json = await res.json();
