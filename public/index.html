@@ -189,8 +189,9 @@
     if (path.startsWith('/@')) {
       targetUsername = path.slice(2);
       document.getElementById('targetName').textContent = '@' + targetUsername;
-      document.getElementById('recordingTab').classList.remove('hidden');
       document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('recordingTab').classList.remove('hidden');
     } else if (localStorage.getItem('currentUser')) {
       currentUser = localStorage.getItem('currentUser');
       showLoggedIn();
