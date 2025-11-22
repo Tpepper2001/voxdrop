@@ -1,4 +1,3 @@
-
 import express from 'express';
 import multer from 'multer';
 import { randomUUID } from 'crypto';
@@ -52,6 +51,11 @@ app.post('/api/receive/:username', upload.single('video'), (req, res) => {
 app.get('/api/inbox/:username', (req, res) => {
   const { username } = req.params;
   res.json(users[username]?.inbox || []);
+});
+
+// Catch-all: serve index.html for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
 app.listen(process.env.PORT || 3000, () => console.log("VoxDrop LIVE – no DB!"));
