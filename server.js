@@ -57,7 +57,16 @@ app.post('/api/login', (req, res) => {
 // Receive drop
 app.post('/api/receive/:username', upload.single('video'), (req, res) => {
   const { username } = req.params;
-  if (!users[username]) return res.status(404).json({ error: "User not found" });
+  console.log('Receive request for:', username);
+  console.log('Available users:', Object.keys(users));
+  
+  if (!users[username]) {
+    return res.status(404).json({ error: `User ${username} not found. Available: ${Object.keys(users).join(', ')}` });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: "No video file" });
+  }
 
   const videoUrl = `/videos/${req.file.filename}.webm`;
   const { transcript } = req.body;
@@ -68,6 +77,7 @@ app.post('/api/receive/:username', upload.single('video'), (req, res) => {
     date: new Date().toISOString()
   });
   fs.writeFileSync('data/users.json', JSON.stringify(users, null, 2));
+  console.log('Drop saved for', username);
   res.json({ success: true });
 });
 
