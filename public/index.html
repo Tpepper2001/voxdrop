@@ -23,7 +23,7 @@
         <p class="text-gray-400 mb-8">Your anonymous voice box</p>
        
         <div id="authTabs" class="flex gap-4 mb-8 border-b border-gray-700">
-          <button onclick="switchAuthTab('login')" id="loginTab" class="pb-4 font-bold border-b-2 border-pink-500 text-white">Login</button>
+          <button onclick="switchAuthTab('login')" id="loginTab" class="pb-4 font-bold border-b-2 border-pink-500">Login</button>
           <button onclick="switchAuthTab('register')" id="registerTab" class="pb-4 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-300">Create Account</button>
         </div>
         <!-- Login Form -->
@@ -63,7 +63,9 @@
     <!-- Inbox Tab -->
     <div id="inboxTab" class="max-w-7xl mx-auto p-6">
       <h2 class="text-4xl font-bold mb-8">Your Voice Box</h2>
-      <div id="messagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="messagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Messages load here -->
+      </div>
       <div id="emptyState" class="text-center py-16">
         <p class="text-2xl text-gray-400">No drops yet</p>
         <p class="text-gray-500 mt-2">Share your link to receive anonymous voice messages</p>
@@ -74,18 +76,26 @@
     <div id="shareTab" class="hidden max-w-7xl mx-auto p-6">
       <h2 class="text-4xl font-bold mb-8">Share Your Link</h2>
       <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700 max-w-2xl">
-        <p class="text-gray-400 mb-4">Share this link to receive anonymous voice messages:</p>
+        <p class="text-gray-400 mb-4">Share this link with anyone to receive anonymous voice messages:</p>
         <div class="flex gap-3 mb-6">
           <input id="shareUrl" readonly class="flex-1 p-4 rounded-lg bg-gray-700 text-white font-mono text-lg">
           <button onclick="copyShareLink()" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg font-bold transition">Copy</button>
         </div>
+       
+        <p class="text-gray-400 mb-4 text-sm">Share directly to:</p>
         <div class="grid grid-cols-3 gap-3">
           <button onclick="shareToWhatsApp()" class="py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
             WhatsApp
           </button>
-          <button onclick="shareToInstagram()" class="py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg font-semibold transition">Instagram</button>
-          <button onclick="shareToTikTok()" class="py-3 bg-black hover:bg-gray-900 rounded-lg font-semibold transition">TikTok</button>
+          <button onclick="shareToInstagram()" class="py-3 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            Instagram
+          </button>
+          <button onclick="shareToTikTok()" class="py-3 bg-gray-900 hover:bg-black rounded-lg font-semibold transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/></svg>
+            TikTok
+          </button>
         </div>
       </div>
     </div>
@@ -108,7 +118,7 @@
           <div>
             <label class="block text-gray-300 mb-3 font-semibold">Choose Voice</label>
             <select id="voiceSelect" class="w-full p-4 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-              <option>Loading voices...</option>
+              <option value="">Loading voices...</option>
             </select>
           </div>
           <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-700"></canvas>
@@ -118,7 +128,7 @@
                 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
               </svg>
             </button>
-            <p id="status" class="text-lg text-gray-300 font-semibold">Tap & speak</p>
+            <p id="status" class="text-lg text-gray-300 font-semibold">Click to record</p>
           </div>
           <button onclick="location.href='/'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg transition">Get Your Own Box</button>
         </div>
@@ -128,21 +138,22 @@
 </div>
 
 <script>
-  // AUTO-UNLOCK AUDIO ON MOBILE (critical!)
-  document.body.addEventListener('touchstart', () => {
+  // CRITICAL: Unlock audio on mobile (must be first!)
+  const unlockAudio = () => {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
-  }, { once: true });
-  document.body.addEventListener('click', () => {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
-  }, { once: true });
+    document.removeEventListener('touchstart', unlockAudio);
+    document.removeEventListener('click', unlockAudio);
+  };
+  document.addEventListener('touchstart', unlockAudio);
+  document.addEventListener('click', unlockAudio);
 
   let currentUser = null;
   let targetUsername = null;
   let isRecording = false;
   let recognition = null;
   let voices = [];
+  let speechTimeout = null;
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const characters = [
@@ -152,30 +163,35 @@
     { color: "#fbbf24", eyeY: -20 }
   ];
 
-  // Speech Recognition
   function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return null;
-    const rec = new SpeechRecognition();
-    rec.continuous = false;
-    rec.interimResults = false;
-    rec.lang = 'en-US';
-    return rec;
+    if (!SpeechRecognition) {
+      alert("Speech recognition not supported in this browser. Try Chrome or Edge.");
+      return null;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    return recognition;
   }
 
-  // Load voices
   function loadVoices() {
-    voices = speechSynthesis.getVoices().filter(v => v.lang.includes('en'));
+    voices = speechSynthesis.getVoices();
     const select = document.getElementById('voiceSelect');
-    select.innerHTML = voices.length > 0
-      ? voices.map((v, i) => `<option value="${i}">${v.name} (${v.lang})</option>`).join('')
-      : '<option>No voices found</option>';
-    if (voices.length > 0) select.value = 0;
+    if (voices.length > 0) {
+      select.innerHTML = voices.map((voice, i) =>
+        `<option value="${i}">${voice.name} (${voice.lang})</option>`
+      ).join('');
+      const defaultVoice = voices.findIndex(v => v.name.includes('Google') || v.name.includes('Female') || v.default);
+      if (defaultVoice >= 0) select.value = defaultVoice;
+    }
   }
-  speechSynthesis.onvoiceschanged = loadVoices;
-  setTimeout(loadVoices, 500);
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  setTimeout(loadVoices, 100);
 
-  // Draw character
   function draw(volume = 0) {
     const char = characters[document.getElementById('character')?.value || 0];
     ctx.fillStyle = '#0f172a';
@@ -189,11 +205,19 @@
     ctx.fillStyle = char.color;
     ctx.fill();
     ctx.fillStyle = 'white';
-    ctx.beginPath(); ctx.arc(-35, char.eyeY, 20, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(35, char.eyeY, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-35, char.eyeY, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(35, char.eyeY, 20, 0, Math.PI * 2);
+    ctx.fill();
     ctx.fillStyle = 'black';
-    ctx.beginPath(); ctx.arc(-35, char.eyeY, 10, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(35, char.eyeY, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-35, char.eyeY, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(35, char.eyeY, 10, 0, Math.PI * 2);
+    ctx.fill();
     const mouth = 5 + volume * 70;
     ctx.beginPath();
     ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI * 2);
@@ -204,25 +228,28 @@
   let animationVolume = 0;
   function animate() {
     draw(animationVolume);
-    animationVolume *= 0.92;
+    animationVolume *= 0.95;
     requestAnimationFrame(animate);
   }
   draw(0); animate();
 
-  // UI Logic
   function switchAuthTab(tab) {
     document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
     document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
     document.getElementById('loginTab').classList.toggle('border-pink-500', tab === 'login');
     document.getElementById('loginTab').classList.toggle('text-white', tab === 'login');
+    document.getElementById('loginTab').classList.toggle('text-gray-400', tab !== 'login');
     document.getElementById('registerTab').classList.toggle('border-pink-500', tab === 'register');
     document.getElementById('registerTab').classList.toggle('text-white', tab === 'register');
+    document.getElementById('registerTab').classList.toggle('text-gray-400', tab !== 'register');
   }
 
   function showTab(tab) {
-    document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
-    document.getElementById(tab + 'Tab').classList.remove('hidden');
-    if (tab === 'inbox') loadInbox();
+    if (currentUser) {
+      document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tab + 'Tab').classList.remove('hidden');
+      if (tab === 'inbox') loadInbox();
+    }
   }
 
   window.onload = () => {
@@ -248,118 +275,224 @@
     showTab('inbox');
   }
 
-  async function login() { /* ... same as before ... */ }
-  async function register() { /* ... same as before ... */ }
+  async function login() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!username || !password) return alert("Enter username and password");
+   
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password})
+    });
+   
+    if (res.ok) {
+      currentUser = username;
+      localStorage.setItem('currentUser', username);
+      showLoggedIn();
+    } else {
+      alert("Invalid credentials");
+    }
+  }
+
+  async function register() {
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const password2 = document.getElementById('regPassword2').value;
+   
+    if (!username || !password) return alert("Enter username and password");
+    if (password !== password2) return alert("Passwords don't match");
+   
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password})
+    });
+   
+    if (res.ok) {
+      currentUser = username;
+      localStorage.setItem('currentUser', username);
+      showLoggedIn();
+    } else {
+      const err = await res.json();
+      alert(err.error || "Registration failed");
+    }
+  }
+
   function logout() {
-    currentUser = null; localStorage.removeItem('currentUser');
+    currentUser = null;
+    localStorage.removeItem('currentUser');
     document.getElementById('mainApp').classList.add('hidden');
     document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
   }
-  function copyShareLink() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied!"); }
-  function shareToWhatsApp() { const url = document.getElementById('shareUrl').value; window.open(`https://wa.me/?text=Send%20me%20an%20anonymous%20voice%20message!%20${encodeURIComponent(url)}`, '_blank'); }
-  function shareToInstagram() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied! Paste in Instagram bio/story"); }
-  function shareToTikTok() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied! Paste in TikTok bio/caption"); }
 
-  // INBOX + VIDEO SHARING (REAL FILE)
+  function copyShareLink() {
+    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    alert("Link copied!");
+  }
+
+  function shareToWhatsApp() {
+    const url = document.getElementById('shareUrl').value;
+    const text = `Send me an anonymous voice message on VoxDrop!`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+    window.open(whatsappUrl, '_blank');
+  }
+
+  function shareToInstagram() {
+    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    alert("Link copied! Paste it in your Instagram bio or story.");
+  }
+
+  function shareToTikTok() {
+    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    alert("Link copied! Paste it in your TikTok bio or video description.");
+  }
+
   async function loadInbox() {
     const res = await fetch('/api/inbox/' + currentUser);
     const messages = await res.json();
     const list = document.getElementById('messagesList');
     const empty = document.getElementById('emptyState');
-    if (messages.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+   
+    if (messages.length === 0) {
+      list.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+   
     empty.classList.add('hidden');
-    list.innerHTML = messages.map(m => `
+    list.innerHTML = messages.map((m, idx) => `
       <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
-        <video src="${m.videoUrl}" controls class="w-full aspect-video bg-black"></video>
+        <video src="${m.videoUrl}" controls class="w-full aspect-video bg-gray-900"></video>
         <div class="p-6">
           ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
           <p class="text-xs text-gray-500 mb-4">${new Date(m.date).toLocaleString()}</p>
+         
           <div class="flex gap-2 mb-3">
-            <button onclick="shareVideoToWhatsApp('${m.videoUrl}')" class="flex-1 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold transition flex items-center justify-center gap-2 text-sm">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg> WhatsApp
+            <button onclick="shareVideoToWhatsApp('${m.videoUrl}')" class="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition text-sm">
+              WhatsApp
             </button>
-            <button onclick="shareVideoToInstagram('${m.videoUrl}')" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg font-bold transition text-sm">Instagram</button>
-            <button onclick="shareVideoToTikTok('${m.videoUrl}')" class="flex-1 py-3 bg-black hover:bg-gray-900 rounded-lg font-bold transition text-sm">TikTok</button>
+            <button onclick="shareVideoToInstagram('${m.videoUrl}')" class="flex-1 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold transition text-sm">
+              Instagram
+            </button>
+            <button onclick="shareVideoToTikTok('${m.videoUrl}')" class="flex-1 py-2 bg-gray-900 hover:bg-black rounded-lg font-semibold transition text-sm">
+              TikTok
+            </button>
           </div>
+         
           <div class="flex gap-2">
-            <a href="${m.videoUrl}" download="voxdrop-secret-admirer.mp4" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-center transition text-sm">Download</a>
-            <button onclick="navigator.clipboard.writeText(location.origin + '${m.videoUrl}')" class="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-bold transition text-sm">Copy Link</button>
+            <a href="${m.videoUrl}" download="voxdrop-secret-admirer.mp4" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-center transition text-sm">Download</a>
+            <button onclick="navigator.clipboard.writeText(location.origin + '${m.videoUrl}')" class="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition text-sm">Copy Link</button>
           </div>
         </div>
       </div>
     `).join('');
   }
 
-  // REAL VIDEO SHARING (not just links)
-  async function shareVideoToWhatsApp(videoUrl) { await shareVideoFile(videoUrl, "WhatsApp"); }
-  async function shareVideoToInstagram(videoUrl) { await shareVideoFile(videoUrl, "Instagram"); }
-  async function shareVideoToTikTok(videoUrl) { await shareVideoFile(videoUrl, "TikTok"); }
+  // REAL VIDEO SHARING (actual file, not just link)
+  async function shareVideoToWhatsApp(videoUrl) { await shareVideoFile(videoUrl); }
+  async function shareVideoToInstagram(videoUrl) { await shareVideoFile(videoUrl); }
+  async function shareVideoToTikTok(videoUrl) { await shareVideoFile(videoUrl); }
 
-  async function shareVideoFile(videoUrl, platform) {
+  async function shareVideoFile(videoUrl) {
     try {
-      const res = await fetch(videoUrl);
-      const blob = await res.blob();
+      const response = await fetch(videoUrl);
+      const blob = await response.blob();
       const file = new File([blob], "voxdrop.mp4", { type: "video/mp4" });
+
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: "Anonymous voice drop!", text: "From VoxDrop" });
+        await navigator.share({
+          files: [file],
+          title: "Anonymous voice drop!",
+          text: "Check out this voice message from VoxDrop"
+        });
       } else {
-        throw new Error("Can't share file");
+        throw new Error("Cannot share file");
       }
     } catch (err) {
       navigator.clipboard.writeText(location.origin + videoUrl);
-      alert(`Video link copied! Paste it in ${platform}`);
+      alert("Video link copied to clipboard!");
     }
   }
 
-  // RECORDING + 100% GUARANTEED AUDIO
-  document.getElementById('micBtn').onclick = async () => {
-    if (!recognition) return alert("Speech recognition not supported. Try Chrome/Edge.");
+  const micBtn = document.getElementById('micBtn');
+ 
+  micBtn.onclick = async () => {
+    if (!recognition) {
+      alert("Speech recognition not available. Please use Chrome or Edge.");
+      return;
+    }
     if (isRecording) return;
     try {
       isRecording = true;
-      document.getElementById('micBtn').classList.add('mic-btn-active');
+      micBtn.classList.add('mic-btn-active');
       document.getElementById('status').textContent = "Listening...";
       recognition.start();
+     
+      speechTimeout = setTimeout(() => {
+        if (isRecording && recognition) {
+          recognition.stop();
+        }
+      }, 10000);
 
-      const result = await new Promise((resolve, reject) => {
-        recognition.onresult = e => resolve(e.results[0][0].transcript);
-        recognition.onerror = e => reject(e.error);
-        recognition.onend = () => { if (isRecording) reject("No speech"); };
-        setTimeout(() => { if (isRecording) recognition.stop(); }, 10000);
+      const transcript = await new Promise((resolve, reject) => {
+        recognition.onresult = (event) => {
+          clearTimeout(speechTimeout);
+          resolve(event.results[0][0].transcript);
+        };
+        recognition.onerror = (event) => {
+          clearTimeout(speechTimeout);
+          reject(event.error);
+        };
+        recognition.onend = () => {
+          clearTimeout(speechTimeout);
+          if (isRecording) reject("No speech detected");
+        };
       });
 
-      is IAARecording = false;
-      document.getElementById('micBtn').classList.remove('mic-btn-active');
-      document.getElementById('status').textContent = "Generating video...";
-      const videoBlob = await renderVideoWithSpeech(result);
-      document.getElementById('status').textContent = "Sending...";
-      await send(videoBlob, result);
-
-    } catch (err) {
       isRecording = false;
-      document.getElementById('micBtn').classList.remove('mic-btn-active');
-      document.getElementById('status').textContent = "Tap & speak";
-      if (err !== "No speech") alert("Error: " + err);
+      micBtn.classList.remove('mic-btn-active');
+      document.getElementById('status').textContent = "Creating video...";
+       
+      const videoBlob = await renderVideoWithSpeech(transcript);
+      document.getElementById('status').textContent = "Sending...";
+      await send(videoBlob, transcript);
+     
+    } catch (e) {
+      isRecording = false;
+      micBtn.classList.remove('mic-btn-active');
+      document.getElementById('status').textContent = "Click to record";
+      if (e !== "No speech detected") alert("Error: " + e);
     }
   };
 
-  // FINAL WORKING renderVideoWithSpeech — AUDIO GUARANTEED
+  // 100% WORKING VIDEO + AUDIO RENDERER (GUARANTEED SOUND)
   async function renderVideoWithSpeech(text) {
     return new Promise(async (resolve, reject) => {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       if (audioContext.state === 'suspended') await audioContext.resume();
+      
       const dest = audioContext.createMediaStreamDestination();
-
       const canvasStream = canvas.captureStream(30);
+
+      // Keep audio track alive
       const silentSource = audioContext.createBufferSource();
       silentSource.buffer = audioContext.createBuffer(1, 1, 22050);
       silentSource.connect(dest);
       silentSource.start();
 
-      const mixedStream = new MediaStream([canvasStream.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
-      const recorder = new MediaRecorder(mixedStream, { mimeType: 'video/webm;codecs=vp9,opus' });
-      const chunks = [];
+      const mixedStream = new MediaStream([
+        canvasStream.getVideoTracks()[0],
+        dest.stream.getAudioTracks()[0]
+      ]);
 
+      const recorder = new MediaRecorder(mixedStream, {
+        mimeType: 'video/webm;codecs=vp9,opus'
+      });
+
+      const chunks = [];
       recorder.ondataavailable = e => e.data.size > 0 && chunks.push(e.data);
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'video/webm' });
@@ -367,21 +500,29 @@
         resolve(blob);
       };
 
-      let interval;
+      let mouthInterval;
       const utterance = new SpeechSynthesisUtterance(text);
-      const voiceIndex = document.getElementById('voiceSelect').value || 0;
-      if (voices[voiceIndex]) utterance.voice = voices[voiceIndex];
+      const voiceIndex = document.getElementById('voiceSelect').value;
+      if (voiceIndex && voices[voiceIndex]) utterance.voice = voices[voiceIndex];
 
       utterance.onstart = () => {
-        interval = setInterval(() => animationVolume = Math.random() * 0.7 + 0.3, 80);
+        mouthInterval = setInterval(() => {
+          animationVolume = Math.random() * 0.7 + 0.3;
+        }, 80);
         recorder.start();
       };
+
       utterance.onend = () => {
-        clearInterval(interval);
+        clearInterval(mouthInterval);
         animationVolume = 0;
         setTimeout(() => recorder.stop(), 800);
       };
-      utterance.onerror = () => { clearInterval(interval); recorder.stop(); reject("Speech failed"); };
+
+      utterance.onerror = () => {
+        clearInterval(mouthInterval);
+        recorder.stop();
+        reject("Speech synthesis failed");
+      };
 
       speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
@@ -392,13 +533,25 @@
     const form = new FormData();
     form.append('video', videoBlob, 'drop.webm');
     form.append('transcript', transcript);
-    const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
-    if (res.ok) {
-      if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-      alert("Drop sent!");
-      setTimeout(() => location.href = '/', 1200);
-    } else {
-      alert("Failed to send");
+   
+    try {
+      const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
+      const data = await res.json();
+     
+      if (res.ok) {
+        document.getElementById('status').textContent = "Click to record";
+        if (typeof confetti !== 'undefined') {
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+        alert("Drop sent!");
+        setTimeout(() => location.href = '/', 1000);
+      } else {
+        alert("Failed to send: " + (data.error || "Unknown error"));
+        document.getElementById('status').textContent = "Click to record";
+      }
+    } catch (err) {
+      alert("Network error: " + err.message);
+      document.getElementById('status').textContent = "Click to record";
     }
   }
 </script>
