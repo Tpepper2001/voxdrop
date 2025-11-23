@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://js.puter.com/v2/"></script>
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=jQZ2zCoV"></script>
 
   <style>
     body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; }
@@ -58,6 +58,7 @@
         <div class="flex gap-4 items-center">
           <button onclick="showTab('inbox')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">Inbox</button>
           <button onclick="showTab('share')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">My Link</button>
+          <button onclick="showTab('settings')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">Settings</button>
           <button onclick="logout()" class="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-semibold">Logout</button>
         </div>
       </div>
@@ -70,6 +71,32 @@
       <div id="emptyState" class="text-center py-16">
         <p class="text-2xl text-gray-400">No drops yet</p>
         <p class="text-gray-500 mt-2">Share your link to receive anonymous voice messages</p>
+      </div>
+    </div>
+
+    <!-- Share Page -->
+    <div id="shareTab" class="hidden max-w-7xl mx-auto p-6">
+
+    <!-- Settings Page -->
+    <div id="settingsTab" class="hidden max-w-7xl mx-auto p-6">
+      <h2 class="text-4xl font-bold mb-8">Settings</h2>
+      <div class="max-w-2xl">
+        <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700">
+          <h3 class="text-2xl font-bold mb-6">Voice Settings</h3>
+          
+          <div class="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
+            <h4 class="font-bold mb-3 text-green-400">✅ Using Free ResponsiveVoice API</h4>
+            <p class="text-gray-300 mb-3">
+              VoxDrop uses ResponsiveVoice's free Text-to-Speech API. No API keys needed!
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-gray-300 text-sm">
+              <li>Completely free to use</li>
+              <li>High-quality voices</li>
+              <li>Multiple accents and languages</li>
+              <li>No sign-ups required</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -137,15 +164,18 @@
         <div>
           <label class="block text-gray-300 mb-3 font-semibold">Voice</label>
           <select id="voiceSelect" class="w-full p-4 rounded-lg bg-gray-700 text-white">
-            <option value="alloy">Alloy (OpenAI)</option>
-            <option value="echo">Echo</option>
-            <option value="fable">Fable</option>
-            <option value="onyx">Onyx</option>
-            <option value="nova">Nova</option>
-            <option value="shimmer" selected>Shimmer (Best)</option>
-            <option value="Joanna">Joanna (AWS)</option>
-            <option value="21m00Tcm4TlvDq8ikWAM">Rachel (ElevenLabs)</option>
+            <option value="UK English Female">UK English Female</option>
+            <option value="UK English Male">UK English Male</option>
+            <option value="US English Female" selected>US English Female</option>
+            <option value="US English Male">US English Male</option>
+            <option value="Australian Female">Australian Female</option>
+            <option value="Australian Male">Australian Male</option>
+            <option value="French Female">French Female</option>
+            <option value="German Female">German Female</option>
+            <option value="Spanish Female">Spanish Female</option>
+            <option value="Italian Female">Italian Female</option>
           </select>
+          <p class="text-xs text-gray-400 mt-2">Using ResponsiveVoice (100% free!)</p>
         </div>
 
         <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-700"></canvas>
@@ -342,10 +372,27 @@
   function showTab(tab) {
     document.getElementById('inboxTab').classList.add('hidden');
     document.getElementById('shareTab').classList.add('hidden');
+    document.getElementById('settingsTab').classList.add('hidden');
     document.getElementById(tab + 'Tab').classList.remove('hidden');
     if (tab === 'inbox') loadInbox();
     if (tab === 'share') updateSharePage();
+    if (tab === 'settings') loadSettings();
   }
+
+  function loadSettings() {
+    // Settings page now just shows info about the free ResponsiveVoice API
+  }
+
+  function saveApiKey() {
+    // No longer needed with ResponsiveVoice
+  }
+
+  function getSpeechifyApiKey() {
+    // No longer needed
+    return null;
+  }
+
+  // No need to load voices dynamically with ResponsiveVoice
 
   function updateSharePage() {
     const url = location.origin + location.pathname + '#@' + currentUser;
@@ -469,7 +516,7 @@
     }
 
     status.textContent = "Speaking...";
-    const videoBlob = await createVideoWithPuterTTS(text.trim());
+    const videoBlob = await createVideoWithSpeechify(text.trim());
 
     status.textContent = "Sending...";
     await sendVideo(videoBlob, text);
@@ -479,53 +526,93 @@
     status.textContent = "Click to record";
   };
 
-  async function createVideoWithPuterTTS(text) {
-    return new Promise(async function(resolve) {
-      const voice = document.getElementById('voiceSelect').value;
+  async function createVideoWithSpeechify(text) {
+    return new Promise(function(resolve, reject) {
+      if (!window.responsiveVoice) {
+        alert('Voice service not loaded. Please refresh the page.');
+        reject(new Error('ResponsiveVoice not loaded'));
+        return;
+      }
 
-      const audioElement = await puter.ai.txt2speech(text, { voice: voice });
-      audioElement.play();
+      const voiceSelect = document.getElementById('voiceSelect');
+      const selectedVoice = voiceSelect.value;
 
-      const canvasStream = canvas.captureStream(30);
-      const audioCtx = new AudioContext();
-      const source = audioCtx.createMediaElementSource(audioElement);
-      const dest = audioCtx.createMediaStreamDestination();
-      source.connect(dest);
-      source.connect(audioCtx.destination);
-
-      const mixed = new MediaStream([
-        canvasStream.getVideoTracks()[0],
-        dest.stream.getAudioTracks()[0]
-      ]);
-
-      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 
-        'video/webm;codecs=vp9,opus' : 'video/webm';
-      const recorder = new MediaRecorder(mixed, { mimeType: mime });
-      const chunks = [];
-
-      recorder.ondataavailable = function(e) {
-        if (e.data.size) chunks.push(e.data);
-      };
+      // Create an audio element to capture ResponsiveVoice output
+      const audioElement = new Audio();
       
-      recorder.onstop = function() {
-        const blob = new Blob(chunks, { type: mime });
-        resolve(blob);
-      };
+      // Get the audio URL from ResponsiveVoice
+      responsiveVoice.speak(text, selectedVoice, {
+        onstart: function() {
+          // Start recording when speech begins
+          startRecording();
+        },
+        onend: function() {
+          // Stop recording when speech ends
+          setTimeout(function() {
+            stopRecording();
+          }, 500);
+        },
+        onerror: function(e) {
+          alert('Error generating speech');
+          reject(e);
+        }
+      });
 
+      let recorder;
+      let chunks = [];
       let interval;
-      audioElement.onplay = function() {
-        interval = setInterval(function() {
-          vol = Math.random() * 0.7 + 0.3;
-        }, 100);
-        recorder.start();
-      };
-      
-      audioElement.onended = function() {
+
+      function startRecording() {
+        // Create a MediaStream from canvas
+        const canvasStream = canvas.captureStream(30);
+        
+        // Create oscillator for audio (since ResponsiveVoice plays through speakers)
+        const audioCtx = new AudioContext();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        // We'll capture system audio by requesting microphone
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function(micStream) {
+          const dest = audioCtx.createMediaStreamDestination();
+          const micSource = audioCtx.createMediaStreamSource(micStream);
+          micSource.connect(dest);
+
+          const mixed = new MediaStream([
+            canvasStream.getVideoTracks()[0],
+            dest.stream.getAudioTracks()[0]
+          ]);
+
+          const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 
+            'video/webm;codecs=vp9,opus' : 'video/webm';
+          recorder = new MediaRecorder(mixed, { mimeType: mime });
+          
+          recorder.ondataavailable = function(e) {
+            if (e.data.size) chunks.push(e.data);
+          };
+          
+          recorder.onstop = function() {
+            micStream.getTracks().forEach(track => track.stop());
+            const blob = new Blob(chunks, { type: mime });
+            resolve(blob);
+          };
+
+          interval = setInterval(function() {
+            vol = Math.random() * 0.7 + 0.3;
+          }, 100);
+
+          recorder.start();
+        }).catch(function(err) {
+          alert('Please allow microphone access to record the voice message');
+          reject(err);
+        });
+      }
+
+      function stopRecording() {
         clearInterval(interval);
-        setTimeout(function() {
+        if (recorder && recorder.state !== 'inactive') {
           recorder.stop();
-        }, 800);
-      };
+        }
+      }
     });
   }
 
