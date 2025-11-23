@@ -143,6 +143,7 @@
   let mediaRecorder = null;
   let stream = null;
   let voices = [];
+  let speechTimeout = null;
 
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
@@ -224,7 +225,7 @@
   let animationVolume = 0;
   function animate() { 
     draw(animationVolume); 
-    animationVolume *= 0.95; // Smooth decay
+    animationVolume *= 0.95;
     requestAnimationFrame(animate); 
   }
   animate();
@@ -376,21 +377,6 @@
     if (isRecording) return;
 
     try {
-      // Start audio recording
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      
-      mediaRecorder.ondataavailable = (e) => {
-        audioChunks.push(e.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        // Don't need the original audio anymore since we'll synthesize
-      };
-
-      mediaRecorder.start();
       isRecording = true;
       micBtn.classList.add('mic-btn-active');
       document.getElementById('status').textContent = "Listening...";
@@ -398,17 +384,17 @@
       // Start speech recognition
       recognition.start();
       
+      // Set timeout for auto-stop after 10 seconds
+      speechTimeout = setTimeout(() => {
+        if (isRecording && recognition) {
+          recognition.stop();
+        }
+      }, 10000);
+
       recognition.onresult = async (event) => {
+        clearTimeout(speechTimeout);
         const transcript = event.results[0][0].transcript;
         console.log('Transcribed:', transcript);
-        
-        // Stop recording
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
-        }
-        if (stream) {
-          stream.getTracks().forEach(t => t.stop());
-        }
         
         isRecording = false;
         micBtn.classList.remove('mic-btn-active');
@@ -418,28 +404,21 @@
       };
 
       recognition.onerror = (event) => {
+        clearTimeout(speechTimeout);
         console.error('Recognition error:', event.error);
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
-        }
-        if (stream) {
-          stream.getTracks().forEach(t => t.stop());
-        }
         isRecording = false;
         micBtn.classList.remove('mic-btn-active');
-        document.getElementById('status').textContent = "Error: " + event.error;
-        alert("Speech recognition error: " + event.error);
+        
+        if (event.error === 'no-speech') {
+          document.getElementById('status').textContent = "No speech detected. Try again.";
+        } else {
+          document.getElementById('status').textContent = "Error: " + event.error;
+        }
       };
 
       recognition.onend = () => {
+        clearTimeout(speechTimeout);
         if (isRecording) {
-          // If still recording but recognition ended, stop everything
-          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-          }
-          if (stream) {
-            stream.getTracks().forEach(t => t.stop());
-          }
           isRecording = false;
           micBtn.classList.remove('mic-btn-active');
           document.getElementById('status').textContent = "Click to record";
@@ -447,8 +426,11 @@
       };
 
     } catch (e) {
-      console.error('Microphone error:', e);
-      alert("Microphone access denied or not available");
+      clearTimeout(speechTimeout);
+      console.error('Recognition error:', e);
+      isRecording = false;
+      micBtn.classList.remove('mic-btn-active');
+      alert("Speech recognition error: " + e.message);
       document.getElementById('status').textContent = "Click to record";
     }
   };
@@ -461,15 +443,12 @@
     }
 
     try {
-      document.getElementById('status').textContent = "Synthesizing voice...";
+      document.getElementById('status').textContent = "Creating video with voice...";
       
-      // Synthesize speech
-      const audioUrl = await synthesizeSpeech(transcript);
+      // Render video with speech synthesis happening during recording
+      const videoBlob = await renderVideoWithSpeech(transcript);
       
-      document.getElementById('status').textContent = "Rendering video...";
-      
-      // Render video with animated avatar
-      const videoBlob = await renderVideo(audioUrl, transcript);
+      document.getElementById('status').textContent = "Sending...";
       
       // Send to server
       await send(videoBlob, transcript);
@@ -481,8 +460,23 @@
     }
   }
 
-  async function synthesizeSpeech(text) {
+  async function renderVideoWithSpeech(text) {
     return new Promise((resolve, reject) => {
+      // Start canvas recording
+      const mediaStream = canvas.captureStream(30);
+      const videoRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm' });
+      const chunks = [];
+
+      videoRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
+      videoRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        resolve(blob);
+      };
+
+      // Create speech utterance
       const utterance = new SpeechSynthesisUtterance(text);
       
       // Get selected voice
@@ -495,60 +489,41 @@
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
 
-      // Create audio context to capture speech
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const dest = audioContext.createMediaStreamDestination();
-      const mediaRecorder = new MediaRecorder(dest.stream);
-      const chunks = [];
-
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        resolve(url);
-      };
+      let animationInterval;
 
       utterance.onstart = () => {
-        mediaRecorder.start();
+        console.log('Speech started');
+        videoRecorder.start();
+        
+        // Animate mouth during speech
+        animationInterval = setInterval(() => {
+          animationVolume = Math.random() * 0.5 + 0.4;
+        }, 100);
       };
 
       utterance.onend = () => {
-        setTimeout(() => mediaRecorder.stop(), 500);
+        console.log('Speech ended');
+        clearInterval(animationInterval);
+        animationVolume = 0;
+        
+        // Stop recording after a small delay
+        setTimeout(() => {
+          videoRecorder.stop();
+        }, 500);
       };
 
       utterance.onerror = (e) => {
+        console.error('Speech error:', e);
+        clearInterval(animationInterval);
+        if (videoRecorder.state !== 'inactive') {
+          videoRecorder.stop();
+        }
         reject(new Error("Speech synthesis error: " + e.error));
       };
 
-      // Animate mouth while speaking
-      utterance.onboundary = () => {
-        animationVolume = Math.random() * 0.5 + 0.5;
-      };
-
+      // Start speech
+      speechSynthesis.cancel(); // Clear any previous speech
       speechSynthesis.speak(utterance);
-    });
-  }
-
-  async function renderVideo(audioUrl) {
-    return new Promise((resolve, reject) => {
-      const audio = new Audio(audioUrl);
-      const mediaStream = canvas.captureStream(30);
-      const rec = new MediaRecorder(mediaStream);
-      const chunks = [];
-
-      rec.ondataavailable = (e) => chunks.push(e.data);
-      rec.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }));
-
-      audio.onplay = () => rec.start();
-      audio.onended = () => setTimeout(() => rec.stop(), 500);
-      audio.onerror = () => reject(new Error("Audio playback error"));
-
-      // Animate during playback
-      audio.ontimeupdate = () => {
-        animationVolume = Math.random() * 0.5 + 0.3;
-      };
-
-      audio.play().catch(err => reject(new Error("Play failed: " + err.message)));
     });
   }
 
