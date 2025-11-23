@@ -157,7 +157,7 @@
           <p id="status" class="text-lg text-gray-300 font-semibold">Click to record</p>
         </div>
 
-        <button onclick="location.href='#'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg">
+        <button onclick="goHome()" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg">
           Get Your Own Box
         </button>
       </div>
@@ -166,7 +166,11 @@
 </div>
 
 <script>
-  document.addEventListener('click', () => new AudioContext?.().resume?.(), { once: true });
+  // Unlock audio on first interaction
+  document.addEventListener('click', function() {
+    const ctx = new AudioContext();
+    ctx.resume();
+  }, { once: true });
 
   let currentUser = null;
   let targetUsername = null;
@@ -182,33 +186,65 @@
     { color: "#fbbf24", eyeY: -20 }
   ];
 
-  function draw(vol = 0) {
-    const c = characters[document.getElementById('character')?.value || 0];
-    ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,300,400);
+  function draw(vol) {
+    vol = vol || 0;
+    const charSelect = document.getElementById('character');
+    const charIndex = charSelect ? parseInt(charSelect.value) : 0;
+    const c = characters[charIndex];
+    
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 300, 400);
     const s = 1 + vol * 0.3;
-    ctx.save(); ctx.translate(150,200); ctx.scale(s,s);
-    ctx.beginPath(); ctx.arc(0,0,90,0,Math.PI*2); ctx.fillStyle = c.color; ctx.fill();
+    ctx.save();
+    ctx.translate(150, 200);
+    ctx.scale(s, s);
+    ctx.beginPath();
+    ctx.arc(0, 0, 90, 0, Math.PI * 2);
+    ctx.fillStyle = c.color;
+    ctx.fill();
     ctx.fillStyle = 'white';
-    ['-35','35'].forEach(x => { ctx.beginPath(); ctx.arc(+x,c.eyeY,20,0,Math.PI*2); ctx.fill(); });
+    
+    ctx.beginPath();
+    ctx.arc(-35, c.eyeY, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(35, c.eyeY, 20, 0, Math.PI * 2);
+    ctx.fill();
+    
     ctx.fillStyle = 'black';
-    ['-35','35'].forEach(x => { ctx.beginPath(); ctx.arc(+x,c.eyeY,10,0,Math.PI*2); ctx.fill(); });
-    const mouth = 5 + vol*70;
-    ctx.beginPath(); ctx.ellipse(0,40,50,mouth,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-35, c.eyeY, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(35, c.eyeY, 10, 0, Math.PI * 2);
+    ctx.fill();
+    
+    const mouth = 5 + vol * 70;
+    ctx.beginPath();
+    ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
 
   let vol = 0;
-  function animate() { draw(vol); vol *= 0.93; requestAnimationFrame(animate); }
+  function animate() {
+    draw(vol);
+    vol *= 0.93;
+    requestAnimationFrame(animate);
+  }
   animate();
 
   function initRec() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return null;
-    const r = new SR(); r.lang = 'en-US'; r.continuous = false; return r;
+    const r = new SR();
+    r.lang = 'en-US';
+    r.continuous = false;
+    return r;
   }
   recognition = initRec();
 
-  // FIXED: In-memory storage simulation
+  // Storage functions
   function getUsers() {
     const users = localStorage.getItem('voxdrop_users');
     return users ? JSON.parse(users) : {};
@@ -219,26 +255,39 @@
   }
 
   function getInbox(username) {
-    const inbox = localStorage.getItem(`voxdrop_inbox_${username}`);
+    const inbox = localStorage.getItem('voxdrop_inbox_' + username);
     return inbox ? JSON.parse(inbox) : [];
   }
 
   function saveInbox(username, messages) {
-    localStorage.setItem(`voxdrop_inbox_${username}`, JSON.stringify(messages));
+    localStorage.setItem('voxdrop_inbox_' + username, JSON.stringify(messages));
   }
 
   function switchAuthTab(t) {
-    ['login','register'].forEach(x => {
-      document.getElementById(x+'Form').classList.toggle('hidden', t !== x);
-      document.getElementById(x+'Tab').classList.toggle('text-white', t===x).classList.toggle('text-gray-400', t!==x)
-        .classList.toggle('border-pink-500', t===x).classList.toggle('border-transparent', t!==x);
+    const tabs = ['login', 'register'];
+    tabs.forEach(function(x) {
+      const form = document.getElementById(x + 'Form');
+      const tab = document.getElementById(x + 'Tab');
+      
+      if (t !== x) {
+        form.classList.add('hidden');
+        tab.classList.remove('text-white', 'border-pink-500');
+        tab.classList.add('text-gray-400', 'border-transparent');
+      } else {
+        form.classList.remove('hidden');
+        tab.classList.add('text-white', 'border-pink-500');
+        tab.classList.remove('text-gray-400', 'border-transparent');
+      }
     });
   }
 
   function login() {
     const u = document.getElementById('loginUsername').value.trim();
     const p = document.getElementById('loginPassword').value;
-    if (!u || !p) return alert('Please fill all fields');
+    if (!u || !p) {
+      alert('Please fill all fields');
+      return;
+    }
     
     const users = getUsers();
     if (users[u] && users[u] === p) {
@@ -254,11 +303,21 @@
     const u = document.getElementById('regUsername').value.trim();
     const p = document.getElementById('regPassword').value;
     const p2 = document.getElementById('regPassword2').value;
-    if (!u || !p) return alert('Please fill all fields');
-    if (p !== p2) return alert('Passwords do not match');
+    
+    if (!u || !p) {
+      alert('Please fill all fields');
+      return;
+    }
+    if (p !== p2) {
+      alert('Passwords do not match');
+      return;
+    }
     
     const users = getUsers();
-    if (users[u]) return alert('Username already exists');
+    if (users[u]) {
+      alert('Username already exists');
+      return;
+    }
     
     users[u] = p;
     saveUsers(users);
@@ -307,21 +366,25 @@
   }
 
   function copyShareLink() {
-    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    const url = document.getElementById('shareUrl').value;
+    navigator.clipboard.writeText(url);
     alert('Link copied to clipboard!');
   }
 
   function shareToWhatsApp() {
-    window.open(`https://wa.me/?text=Send%20me%20a%20secret%20voice%20drop%21%20${encodeURIComponent(document.getElementById('shareUrl').value)}`);
+    const url = document.getElementById('shareUrl').value;
+    window.open('https://wa.me/?text=Send%20me%20a%20secret%20voice%20drop%21%20' + encodeURIComponent(url));
   }
 
   function shareToInstagram() {
-    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    const url = document.getElementById('shareUrl').value;
+    navigator.clipboard.writeText(url);
     alert('Link copied! Paste it in your Instagram bio or story');
   }
 
   function shareToTikTok() {
-    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    const url = document.getElementById('shareUrl').value;
+    navigator.clipboard.writeText(url);
     alert('Link copied! Paste it in your TikTok bio');
   }
 
@@ -337,19 +400,22 @@
     }
     
     empty.classList.add('hidden');
-    list.innerHTML = msgs.map(m => `
-      <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
-        <video controls class="w-full aspect-video bg-black"><source src="${m.videoUrl}" type="video/webm"></video>
-        <div class="p-6">
-          ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
-          <p class="text-xs text-gray-500">${new Date(m.date).toLocaleString()}</p>
-        </div>
-      </div>
-    `).join('');
+    list.innerHTML = msgs.map(function(m) {
+      return '<div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">' +
+        '<video controls class="w-full aspect-video bg-black"><source src="' + m.videoUrl + '" type="video/webm"></video>' +
+        '<div class="p-6">' +
+        (m.transcript ? '<p class="text-gray-300 italic mb-4">"' + m.transcript + '"</p>' : '') +
+        '<p class="text-xs text-gray-500">' + new Date(m.date).toLocaleString() + '</p>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function goHome() {
+    location.href = location.pathname;
   }
 
   // Page load
-  window.onload = () => {
+  window.onload = function() {
     const hash = location.hash;
     if (hash.startsWith('#@')) {
       targetUsername = hash.slice(2);
@@ -367,7 +433,7 @@
   };
 
   // RECORDING
-  document.getElementById('micBtn').onclick = async () => {
+  document.getElementById('micBtn').onclick = async function() {
     if (isRecording) return;
     isRecording = true;
     const btn = document.getElementById('micBtn');
@@ -377,14 +443,24 @@
 
     let text = "";
     if (recognition) {
-      text = await new Promise(res => {
-        recognition.onresult = e => res(e.results[0][0].transcript);
-        recognition.onerror = () => res("");
-        recognition.onend = () => res(text);
+      text = await new Promise(function(res) {
+        recognition.onresult = function(e) {
+          res(e.results[0][0].transcript);
+        };
+        recognition.onerror = function() {
+          res("");
+        };
+        recognition.onend = function() {
+          if (!text) res("");
+        };
         recognition.start();
       });
     }
-    if (!text.trim()) text = prompt("Type or say your message:") || "";
+    
+    if (!text.trim()) {
+      text = prompt("Type or say your message:") || "";
+    }
+    
     if (!text.trim()) {
       isRecording = false;
       btn.classList.remove('mic-btn-active');
@@ -404,10 +480,10 @@
   };
 
   async function createVideoWithPuterTTS(text) {
-    return new Promise(async resolve => {
+    return new Promise(async function(resolve) {
       const voice = document.getElementById('voiceSelect').value;
 
-      const audioElement = await puter.ai.txt2speech(text, { voice });
+      const audioElement = await puter.ai.txt2speech(text, { voice: voice });
       audioElement.play();
 
       const canvasStream = canvas.captureStream(30);
@@ -417,33 +493,45 @@
       source.connect(dest);
       source.connect(audioCtx.destination);
 
-      const mixed = new MediaStream([canvasStream.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
+      const mixed = new MediaStream([
+        canvasStream.getVideoTracks()[0],
+        dest.stream.getAudioTracks()[0]
+      ]);
 
-      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 
+        'video/webm;codecs=vp9,opus' : 'video/webm';
       const recorder = new MediaRecorder(mixed, { mimeType: mime });
       const chunks = [];
 
-      recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
-      recorder.onstop = () => {
+      recorder.ondataavailable = function(e) {
+        if (e.data.size) chunks.push(e.data);
+      };
+      
+      recorder.onstop = function() {
         const blob = new Blob(chunks, { type: mime });
         resolve(blob);
       };
 
       let interval;
-      audioElement.onplay = () => {
-        interval = setInterval(() => vol = Math.random() * 0.7 + 0.3, 100);
+      audioElement.onplay = function() {
+        interval = setInterval(function() {
+          vol = Math.random() * 0.7 + 0.3;
+        }, 100);
         recorder.start();
       };
-      audioElement.onended = () => {
+      
+      audioElement.onended = function() {
         clearInterval(interval);
-        setTimeout(() => recorder.stop(), 800);
+        setTimeout(function() {
+          recorder.stop();
+        }, 800);
       };
     });
   }
 
   async function sendVideo(blob, text) {
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = function() {
       const dataUrl = reader.result;
       const msgs = getInbox(targetUsername);
       msgs.push({
@@ -455,7 +543,9 @@
       
       confetti({ particleCount: 200, spread: 80 });
       alert("Drop sent successfully!");
-      setTimeout(() => location.href = location.pathname, 1200);
+      setTimeout(function() {
+        location.href = location.pathname;
+      }, 1200);
     };
     reader.readAsDataURL(blob);
   }
