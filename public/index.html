@@ -84,16 +84,17 @@
           <h3 class="text-2xl font-bold mb-6">Voice Settings</h3>
           
           <div class="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
-            <h4 class="font-bold mb-3 text-green-400">✅ Using Free Text-to-Speech</h4>
+            <h4 class="font-bold mb-3 text-green-400">✅ Using Browser Speech Synthesis</h4>
             <p class="text-gray-300 mb-3">
-              VoxDrop uses free text-to-speech - no API keys needed!
+              VoxDrop captures your browser's speech synthesis directly for high-quality voice in videos.
             </p>
             <ul class="list-disc list-inside space-y-2 text-gray-300 text-sm">
-              <li>100% free to use</li>
-              <li>Natural-sounding voice</li>
-              <li>Audio recorded in videos</li>
-              <li>No limits or sign-ups</li>
+              <li>100% free, no API needed</li>
+              <li>Natural browser voices</li>
+              <li>Audio properly captured in final video</li>
+              <li>Requires microphone permission to capture system audio</li>
             </ul>
+            <p class="text-yellow-400 text-xs mt-4">💡 Tip: Allow mic access when prompted - it's used to record the synthesized voice!</p>
           </div>
         </div>
       </div>
@@ -520,23 +521,89 @@
   async function createVideoWithSpeechify(text) {
     return new Promise(async function(resolve, reject) {
       try {
-        // Use VoiceRSS free TTS API (no auth required for this demo key)
-        const apiKey = '69c80d2b23b14d7c9e7e0f929fa6c1be'; // Public demo key
-        const encodedText = encodeURIComponent(text);
-        const audioUrl = `https://api.voicerss.org/?key=${apiKey}&hl=en-us&src=${encodedText}&c=MP3&f=44khz_16bit_stereo`;
+        // Step 1: Synthesize speech using Web Speech API and capture it
+        const audioBlob = await synthesizeAndCaptureSpeech(text);
         
-        const audioElement = new Audio();
-        audioElement.crossOrigin = 'anonymous';
-        audioElement.src = audioUrl;
+        // Step 2: Create video with the captured audio
+        const videoBlob = await createVideoWithAudio(audioBlob, text);
+        
+        resolve(videoBlob);
+      } catch (error) {
+        console.error('Video creation error:', error);
+        alert('Error creating video: ' + error.message);
+        reject(error);
+      }
+    });
+  }
+
+  // Synthesize speech and capture it as audio blob
+  async function synthesizeAndCaptureSpeech(text) {
+    return new Promise(function(resolve, reject) {
+      // Request microphone access to capture system audio
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function(micStream) {
+        const audioCtx = new AudioContext();
+        const micSource = audioCtx.createMediaStreamSource(micStream);
+        const dest = audioCtx.createMediaStreamDestination();
+        micSource.connect(dest);
+
+        const recorder = new MediaRecorder(dest.stream);
+        const chunks = [];
+
+        recorder.ondataavailable = function(e) {
+          if (e.data.size) chunks.push(e.data);
+        };
+        
+        recorder.onstop = function() {
+          micStream.getTracks().forEach(track => track.stop());
+          const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+          resolve(audioBlob);
+        };
+
+        // Create and speak the utterance
+        const utterance = new SpeechSynthesisUtterance(text);
+        const voiceSpeed = parseFloat(document.getElementById('voiceSelect').value);
+        utterance.rate = voiceSpeed;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        utterance.onstart = function() {
+          // Start recording when speech begins
+          recorder.start();
+        };
+        
+        utterance.onend = function() {
+          // Stop recording after speech ends
+          setTimeout(function() {
+            recorder.stop();
+          }, 500);
+        };
+        
+        utterance.onerror = function(e) {
+          micStream.getTracks().forEach(track => track.stop());
+          if (recorder.state !== 'inactive') recorder.stop();
+          reject(new Error('Speech synthesis failed: ' + e.error));
+        };
+
+        // Speak the text
+        window.speechSynthesis.speak(utterance);
+        
+      }).catch(function(error) {
+        alert('Microphone access needed to capture the voice. Please allow microphone access.');
+        reject(error);
+      });
+    });
+  }
+
+  // Create video with the pre-recorded audio
+  async function createVideoWithAudio(audioBlob, text) {
+    return new Promise(async function(resolve, reject) {
+      try {
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audioElement = new Audio(audioUrl);
         
         // Wait for audio to load
-        await new Promise(function(res, rej) {
-          audioElement.oncanplaythrough = res;
-          audioElement.onerror = function(err) {
-            console.error('Audio load error:', err);
-            rej(new Error('Failed to load audio'));
-          };
-          audioElement.load();
+        await new Promise(function(res) {
+          audioElement.onloadedmetadata = res;
         });
 
         const audioCtx = new AudioContext();
@@ -561,8 +628,9 @@
         };
         
         recorder.onstop = function() {
-          const blob = new Blob(chunks, { type: mime });
-          resolve(blob);
+          URL.revokeObjectURL(audioUrl);
+          const videoBlob = new Blob(chunks, { type: mime });
+          resolve(videoBlob);
         };
 
         let interval;
@@ -576,61 +644,22 @@
         
         audioElement.onended = function() {
           clearInterval(interval);
+          vol = 0;
           setTimeout(function() {
             recorder.stop();
-          }, 500);
-        };
-        
-        audioElement.onerror = function(e) {
-          clearInterval(interval);
-          if (recorder.state !== 'inactive') recorder.stop();
-          reject(new Error('Audio playback error'));
+          }, 300);
         };
 
         // Start playback
-        await audioElement.play();
+        audioElement.play();
         
       } catch (error) {
-        console.error('TTS Error:', error);
-        alert('Error generating speech: ' + error.message + '. Using silent video.');
-        // Fallback: create a silent video with just animation
-        createSilentVideo(text).then(resolve).catch(reject);
+        reject(error);
       }
     });
   }
 
-  // Fallback: create video without audio
-  function createSilentVideo(text) {
-    return new Promise(function(resolve) {
-      const canvasStream = canvas.captureStream(30);
-      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 
-        'video/webm;codecs=vp9' : 'video/webm';
-      const recorder = new MediaRecorder(canvasStream, { mimeType: mime });
-      const chunks = [];
-
-      recorder.ondataavailable = function(e) {
-        if (e.data.size) chunks.push(e.data);
-      };
-      
-      recorder.onstop = function() {
-        const blob = new Blob(chunks, { type: mime });
-        resolve(blob);
-      };
-
-      let interval = setInterval(function() {
-        vol = Math.random() * 0.7 + 0.3;
-      }, 100);
-
-      recorder.start();
-      
-      // Record for estimated duration based on text length
-      const duration = Math.max(3000, text.length * 100);
-      setTimeout(function() {
-        clearInterval(interval);
-        recorder.stop();
-      }, duration);
-    });
-  }
+  // Remove the old createSilentVideo function as it's no longer needed
 
   // Remove the bufferToWave helper - no longer needed
 
