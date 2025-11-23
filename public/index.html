@@ -7,8 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
-  <!-- Puter.js v2 – Official Latest -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://js.puter.com/v2/"></script>
 
   <style>
@@ -74,7 +73,7 @@
       </div>
     </div>
 
-    <!-- Share Page – Now Beautiful! -->
+    <!-- Share Page -->
     <div id="shareTab" class="hidden max-w-7xl mx-auto p-6">
       <h2 class="text-5xl font-black mb-10 text-center bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">
         Share Your Anonymous Voice Box
@@ -93,7 +92,7 @@
           </div>
 
           <div class="flex justify-center mb-10">
-            <canvas id="qrCanvas" class="rounded-2xl border border-gray-700"></canvas>
+            <div id="qrCanvas"></div>
           </div>
 
           <p class="text-center text-gray-400 mb-6">Share directly</p>
@@ -158,7 +157,7 @@
           <p id="status" class="text-lg text-gray-300 font-semibold">Click to record</p>
         </div>
 
-        <button onclick="location.href='/'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg">
+        <button onclick="location.href='#'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg">
           Get Your Own Box
         </button>
       </div>
@@ -167,7 +166,6 @@
 </div>
 
 <script>
-  // Unlock audio
   document.addEventListener('click', () => new AudioContext?.().resume?.(), { once: true });
 
   let currentUser = null;
@@ -210,112 +208,165 @@
   }
   recognition = initRec();
 
-  // Auth
+  // FIXED: In-memory storage simulation
+  function getUsers() {
+    const users = localStorage.getItem('voxdrop_users');
+    return users ? JSON.parse(users) : {};
+  }
+
+  function saveUsers(users) {
+    localStorage.setItem('voxdrop_users', JSON.stringify(users));
+  }
+
+  function getInbox(username) {
+    const inbox = localStorage.getItem(`voxdrop_inbox_${username}`);
+    return inbox ? JSON.parse(inbox) : [];
+  }
+
+  function saveInbox(username, messages) {
+    localStorage.setItem(`voxdrop_inbox_${username}`, JSON.stringify(messages));
+  }
+
   function switchAuthTab(t) {
     ['login','register'].forEach(x => {
       document.getElementById(x+'Form').classList.toggle('hidden', t !== x);
-      document.getElementById(x+'Tab').classList.toggle('text-white', t===x).toggle('text-gray-400', t!==x)
-        .toggle('border-pink-500', t===x).toggle('border-transparent', t!==x);
+      document.getElementById(x+'Tab').classList.toggle('text-white', t===x).classList.toggle('text-gray-400', t!==x)
+        .classList.toggle('border-pink-500', t===x).classList.toggle('border-transparent', t!==x);
     });
   }
 
-  async function login() {
+  function login() {
     const u = document.getElementById('loginUsername').value.trim();
     const p = document.getElementById('loginPassword').value;
-    if (!u||!p) return alert('Fill all');
-    const res = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p})});
-    if (res.ok) { currentUser = u; localStorage.currentUser = u; showLoggedIn(); } else alert('Wrong');
+    if (!u || !p) return alert('Please fill all fields');
+    
+    const users = getUsers();
+    if (users[u] && users[u] === p) {
+      currentUser = u;
+      localStorage.setItem('voxdrop_currentUser', u);
+      showLoggedIn();
+    } else {
+      alert('Invalid username or password');
+    }
   }
 
-  async function register() {
+  function register() {
     const u = document.getElementById('regUsername').value.trim();
     const p = document.getElementById('regPassword').value;
     const p2 = document.getElementById('regPassword2').value;
-    if (!u||!p) return alert('Fill all');
+    if (!u || !p) return alert('Please fill all fields');
     if (p !== p2) return alert('Passwords do not match');
-    const res = await fetch('/api/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p})});
-    if (res.ok) { currentUser = u; localStorage.currentUser = u; showLoggedIn(); } else alert('Failed');
+    
+    const users = getUsers();
+    if (users[u]) return alert('Username already exists');
+    
+    users[u] = p;
+    saveUsers(users);
+    currentUser = u;
+    localStorage.setItem('voxdrop_currentUser', u);
+    showLoggedIn();
   }
 
-  function logout() { localStorage.removeItem('currentUser'); location.reload(); }
+  function logout() {
+    localStorage.removeItem('voxdrop_currentUser');
+    location.reload();
+  }
 
   function showLoggedIn() {
     document.getElementById('authScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.remove('hidden');
-    document.getElementById('userDisplay').textContent = '@'+currentUser;
-    document.getElementById('shareUrl').value = location.origin + '/@' + currentUser;
+    document.getElementById('userDisplay').textContent = '@' + currentUser;
+    document.getElementById('shareUrl').value = location.origin + location.pathname + '#@' + currentUser;
     showTab('inbox');
   }
 
   function showTab(tab) {
     document.getElementById('inboxTab').classList.add('hidden');
     document.getElementById('shareTab').classList.add('hidden');
-    document.getElementById(tab+'Tab').classList.remove('hidden');
+    document.getElementById(tab + 'Tab').classList.remove('hidden');
     if (tab === 'inbox') loadInbox();
     if (tab === 'share') updateSharePage();
   }
 
   function updateSharePage() {
-    const url = location.origin + '/@' + currentUser;
+    const url = location.origin + location.pathname + '#@' + currentUser;
     document.getElementById('shareUrl').value = url;
-    new QRCode(document.getElementById('qrCanvas'), { text: url, width: 200, height: 200, colorDark: "#f472b6", colorLight: "#1e293b" });
-    fetch('/api/inbox/' + currentUser).then(r=>r.json()).then(d=>document.getElementById('totalDrops').textContent = d.length);
+    
+    const qrDiv = document.getElementById('qrCanvas');
+    qrDiv.innerHTML = '';
+    new QRCode(qrDiv, { 
+      text: url, 
+      width: 200, 
+      height: 200, 
+      colorDark: "#f472b6", 
+      colorLight: "#1e293b" 
+    });
+    
+    const msgs = getInbox(currentUser);
+    document.getElementById('totalDrops').textContent = msgs.length;
   }
 
-  function copyShareLink() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert('Copied!'); }
-  function shareToWhatsApp() { window.open(`https://wa.me/?text=Send%20me%20a%20secret%20voice%20drop%21%20${encodeURIComponent(document.getElementById('shareUrl').value)}`); }
-  function shareToInstagram() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert('Copied!'); }
-  function shareToTikTok() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert('Copied!'); }
+  function copyShareLink() {
+    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    alert('Link copied to clipboard!');
+  }
 
-  async function loadInbox() {
-    const res = await fetch('/api/inbox/' + currentUser);
-    const msgs = await res.json();
+  function shareToWhatsApp() {
+    window.open(`https://wa.me/?text=Send%20me%20a%20secret%20voice%20drop%21%20${encodeURIComponent(document.getElementById('shareUrl').value)}`);
+  }
+
+  function shareToInstagram() {
+    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    alert('Link copied! Paste it in your Instagram bio or story');
+  }
+
+  function shareToTikTok() {
+    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+    alert('Link copied! Paste it in your TikTok bio');
+  }
+
+  function loadInbox() {
+    const msgs = getInbox(currentUser);
     const list = document.getElementById('messagesList');
     const empty = document.getElementById('emptyState');
-    if (msgs.length===0) { list.innerHTML=''; empty.classList.remove('hidden'); return; }
+    
+    if (msgs.length === 0) {
+      list.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    
     empty.classList.add('hidden');
-    list.innerHTML = msgs.map(m=>`
+    list.innerHTML = msgs.map(m => `
       <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
         <video controls class="w-full aspect-video bg-black"><source src="${m.videoUrl}" type="video/webm"></video>
         <div class="p-6">
           ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
           <p class="text-xs text-gray-500">${new Date(m.date).toLocaleString()}</p>
-          <div class="grid grid-cols-3 gap-2 mt-4">
-            <button onclick="shareVideo('${m.videoUrl}')" class="py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-bold">WhatsApp</button>
-            <button onclick="shareVideo('${m.videoUrl}')" class="py-2 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold">Instagram</button>
-            <a href="${m.videoUrl}" download class="py-2 bg-blue-600 hover:bg-blue-700 rounded text-center text-sm font-bold">Download</a>
-          </div>
         </div>
       </div>
     `).join('');
   }
 
-  async function shareVideo(url) {
-    try {
-      const r = await fetch(url);
-      const b = await r.blob();
-      const f = new File([b], "voxdrop.webm", {type: "video/webm"});
-      if (navigator.canShare?.({files:[f]})) await navigator.share({files:[f]});
-      else throw 0;
-    } catch { navigator.clipboard.writeText(url); alert('Link copied!'); }
-  }
-
   // Page load
   window.onload = () => {
-    const path = location.pathname;
-    if (path.startsWith('/@')) {
-      targetUsername = path.slice(2);
-      document.getElementById('targetName').textContent = '@'+targetUsername;
+    const hash = location.hash;
+    if (hash.startsWith('#@')) {
+      targetUsername = hash.slice(2);
+      document.getElementById('targetName').textContent = '@' + targetUsername;
       document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('mainApp').classList.add('hidden');
       document.getElementById('recordingTab').classList.remove('hidden');
-    } else if (localStorage.currentUser) {
-      currentUser = localStorage.currentUser;
-      showLoggedIn();
+    } else {
+      const saved = localStorage.getItem('voxdrop_currentUser');
+      if (saved) {
+        currentUser = saved;
+        showLoggedIn();
+      }
     }
   };
 
-  // RECORDING – NOW USING puter.ai.txt2speech() (OFFICIAL 2025 METHOD)
+  // RECORDING
   document.getElementById('micBtn').onclick = async () => {
     if (isRecording) return;
     isRecording = true;
@@ -334,7 +385,12 @@
       });
     }
     if (!text.trim()) text = prompt("Type or say your message:") || "";
-    if (!text.trim()) { isRecording=false; btn.classList.remove('mic-btn-active'); status.textContent="Click to record"; return; }
+    if (!text.trim()) {
+      isRecording = false;
+      btn.classList.remove('mic-btn-active');
+      status.textContent = "Click to record";
+      return;
+    }
 
     status.textContent = "Speaking...";
     const videoBlob = await createVideoWithPuterTTS(text.trim());
@@ -351,7 +407,6 @@
     return new Promise(async resolve => {
       const voice = document.getElementById('voiceSelect').value;
 
-      // NEW OFFICIAL METHOD
       const audioElement = await puter.ai.txt2speech(text, { voice });
       audioElement.play();
 
@@ -365,18 +420,18 @@
       const mixed = new MediaStream([canvasStream.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
 
       const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' : 'video/webm';
-      const recorder = new MediaRecorder(mixed, {mimeType: mime});
+      const recorder = new MediaRecorder(mixed, { mimeType: mime });
       const chunks = [];
 
       recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
       recorder.onstop = () => {
-        const blob = new Blob(chunks, {type: mime});
+        const blob = new Blob(chunks, { type: mime });
         resolve(blob);
       };
 
       let interval;
       audioElement.onplay = () => {
-        interval = setInterval(() => vol = Math.random()*0.7 + 0.3, 100);
+        interval = setInterval(() => vol = Math.random() * 0.7 + 0.3, 100);
         recorder.start();
       };
       audioElement.onended = () => {
@@ -387,15 +442,22 @@
   }
 
   async function sendVideo(blob, text) {
-    const f = new FormData();
-    f.append('video', blob, 'drop.webm');
-    f.append('transcript', text);
-    const r = await fetch(`/api/receive/${targetUsername}`, {method:'POST', body:f});
-    if (r.ok) {
-      confetti({particleCount:200, spread:80});
-      alert("Drop sent!");
-      setTimeout(() => location.href='/', 1200);
-    } else alert("Failed");
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result;
+      const msgs = getInbox(targetUsername);
+      msgs.push({
+        videoUrl: dataUrl,
+        transcript: text,
+        date: new Date().toISOString()
+      });
+      saveInbox(targetUsername, msgs);
+      
+      confetti({ particleCount: 200, spread: 80 });
+      alert("Drop sent successfully!");
+      setTimeout(() => location.href = location.pathname, 1200);
+    };
+    reader.readAsDataURL(blob);
   }
 </script>
 </body>
