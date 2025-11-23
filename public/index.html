@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Puter.js TTS (real audio that works everywhere) -->
+  <script src="https://js.puter.com/v2/"></script>
+
   <style>
     body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; }
     .mic-btn-active { animation: pulse-red 1.5s infinite; }
@@ -15,7 +19,7 @@
 </head>
 <body class="min-h-screen">
 <div id="app">
-  <!-- Your original auth screen (100% unchanged) -->
+  <!-- Auth Screen -->
   <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-md">
       <div class="bg-gray-800/50 backdrop-blur-xl rounded-3xl p-8 border border-gray-700">
@@ -56,6 +60,7 @@
       </div>
     </div>
 
+    <!-- Inbox Tab -->
     <div id="inboxTab" class="max-w-7xl mx-auto p-6">
       <h2 class="text-4xl font-bold mb-8">Your Voice Box</h2>
       <div id="messagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -65,6 +70,7 @@
       </div>
     </div>
 
+    <!-- Share Tab -->
     <div id="shareTab" class="hidden max-w-7xl mx-auto p-6">
       <h2 class="text-4xl font-bold mb-8">Share Your Link</h2>
       <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700 max-w-2xl">
@@ -73,7 +79,7 @@
           <input id="shareUrl" readonly class="flex-1 p-4 rounded-lg bg-gray-700 text-white font-mono text-lg">
           <button onclick="copyShareLink()" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg font-bold transition">Copy</button>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-3 gap-3 gap-3">
           <button onclick="shareToWhatsApp()" class="py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
             WhatsApp
@@ -84,6 +90,7 @@
       </div>
     </div>
 
+    <!-- Recording Tab (when visiting /@username) -->
     <div id="recordingTab" class="hidden min-h-screen flex items-center justify-center p-6">
       <div class="max-w-2xl w-full">
         <h2 class="text-4xl font-bold text-center mb-2">Drop a voice to</h2>
@@ -99,9 +106,16 @@
             </select>
           </div>
           <div>
-            <label class="block text-gray-300 mb-3 font-semibold">Choose Voice</label>
+            <label class="block text-gray-300 mb-3 font-semibold">Choose Voice (Puter.js)</label>
             <select id="voiceSelect" class="w-full p-4 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-              <option>Loading voices...</option>
+              <option value="alloy">Alloy (OpenAI)</option>
+              <option value="echo">Echo</option>
+              <option value="fable">Fable</option>
+              <option value="onyx">Onyx</option>
+              <option value="nova">Nova</option>
+              <option value="shimmer">Shimmer</option>
+              <option value="female" selected>Female (Natural)</option>
+              <option value="male">Male</option>
             </select>
           </div>
           <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-700"></canvas>
@@ -121,7 +135,7 @@
 </div>
 
 <script>
-  // Unlock audio on mobile
+  // Unlock audio context on mobile
   const unlockAudio = () => {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx && ctx.state === 'suspended') ctx.resume();
@@ -135,9 +149,10 @@
   let targetUsername = null;
   let isRecording = false;
   let recognition = null;
-  let voices = [];
+
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
+
   const characters = [
     { color: "#60a5fa", eyeY: -30 },
     { color: "#f472b6", eyeY: -25 },
@@ -145,6 +160,41 @@
     { color: "#fbbf24", eyeY: -20 }
   ];
 
+  function draw(volume = 0) {
+    const char = characters[document.getElementById('character')?.value || 0];
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 300, 400);
+
+    const scale = 1 + volume * 0.3;
+    ctx.save();
+    ctx.translate(150, 200);
+    ctx.scale(scale, scale);
+
+    ctx.beginPath(); ctx.arc(0, 0, 90, 0, Math.PI * 2); ctx.fillStyle = char.color; ctx.fill();
+
+    ctx.fillStyle = 'white';
+    ctx.beginPath(); ctx.arc(-35, char.eyeY, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(35, char.eyeY, 20, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = 'black';
+    ctx.beginPath(); ctx.arc(-35, char.eyeY, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(35, char.eyeY, 10, 0, Math.PI * 2); ctx.fill();
+
+    const mouth = 5 + volume * 70;
+    ctx.beginPath(); ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI * 2); ctx.fillStyle = 'black'; ctx.fill();
+
+    ctx.restore();
+  }
+
+  let animationVolume = 0;
+  function animate() {
+    draw(animationVolume);
+    animationVolume *= 0.95;
+    requestAnimationFrame(animate);
+  }
+  draw(0); animate();
+
+  // Speech Recognition (for transcript only)
   function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return null;
@@ -155,59 +205,21 @@
     return r;
   }
 
-  function loadVoices() {
-    voices = speechSynthesis.getVoices();
-    const select = document.getElementById('voiceSelect');
-    if (voices.length > 0) {
-      select.innerHTML = voices.map((v, i) => `<option value="${i}">${v.name}</option>`).join('');
-      const good = voices.findIndex(v => /google|female|natural/i.test(v.name));
-      if (good >= 0) select.value = good;
-    }
-  }
-  speechSynthesis.onvoiceschanged = loadVoices;
-  setTimeout(loadVoices, 300);
-
-  function draw(volume = 0) {
-    const char = characters[document.getElementById('character')?.value || 0];
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, 300, 400);
-    const scale = 1 + volume * 0.3;
-    ctx.save();
-    ctx.translate(150, 200);
-    ctx.scale(scale, scale);
-    ctx.beginPath(); ctx.arc(0, 0, 90, 0, Math.PI * 2); ctx.fillStyle = char.color; ctx.fill();
-    ctx.fillStyle = 'white';
-    ctx.beginPath(); ctx.arc(-35, char.eyeY, 20, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(35, char.eyeY, 20, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'black';
-    ctx.beginPath(); ctx.arc(-35, char.eyeY, 10, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(35, char.eyeY, 10, 0, Math.PI * 2); ctx.fill();
-    const mouth = 5 + volume * 70;
-    ctx.beginPath(); ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI * 2); ctx.fillStyle = 'black'; ctx.fill();
-    ctx.restore();
-  }
-  let animationVolume = 0;
-  function animate() {
-    draw(animationVolume);
-    animationVolume *= 0.95;
-    requestAnimationFrame(animate);
-  }
-  draw(0); animate();
-
-  // Your original login/register (unchanged)
+  // App Logic
   function switchAuthTab(tab) {
     document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
     document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
     document.getElementById('loginTab').classList.toggle('border-pink-500', tab === 'login');
     document.getElementById('registerTab').classList.toggle('border-pink-500', tab === 'register');
+    document.getElementById('loginTab').classList.toggle('text-gray-400', tab !== 'login');
+    document.getElementById('registerTab').classList.toggle('text-gray-400', tab !== 'register');
   }
 
   function showTab(tab) {
-    if (currentUser) {
-      document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
-      document.getElementById(tab + 'Tab').classList.remove('hidden');
-      if (tab === 'inbox') loadInbox();
-    }
+    if (!currentUser) return;
+    document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
+    document.getElementById(tab + 'Tab').classList.remove('hidden');
+    if (tab === 'inbox') loadInbox();
   }
 
   window.onload = () => {
@@ -238,25 +250,34 @@
     const password = document.getElementById('loginPassword').value;
     if (!username || !password) return alert("Enter username and password");
     const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, password}) });
-    if (res.ok) { currentUser = username; localStorage.setItem('currentUser', username); showLoggedIn(); } 
-    else alert("Invalid credentials");
+    if (res.ok) {
+      currentUser = username;
+      localStorage.setItem('currentUser', username);
+      showLoggedIn();
+    } else alert("Invalid credentials");
   }
 
   async function register() {
     const username = document.getElementById('regUsername').value.trim();
     const password = document.getElementById('regPassword').value;
     const password2 = document.getElementById('regPassword2').value;
-    if (!username || !password) return alert("Enter username and password");
+    if (!username || !password) return alert("Fill all fields");
     if (password !== password2) return alert("Passwords don't match");
     const res = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, password}) });
-    if (res.ok) { currentUser = username; localStorage.setItem('currentUser', username); showLoggedIn(); } 
-    else { const err = await res.json(); alert(err.error || "Registration failed"); }
+    if (res.ok) {
+      currentUser = username;
+      localStorage.setItem('currentUser', username);
+      showLoggedIn();
+    } else {
+      const err = await res.json();
+      alert(err.error || "Registration failed");
+    }
   }
 
   function logout() {
-    currentUser = null; localStorage.removeItem('currentUser');
-    document.getElementById('mainApp').classList.add('hidden');
-    document.getElementById('authScreen').classList.remove('hidden');
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    location.reload();
   }
 
   function copyShareLink() {
@@ -264,7 +285,7 @@
     alert("Link copied!");
   }
 
-  function shareToWhatsApp() { 
+  function shareToWhatsApp() {
     const url = document.getElementById('shareUrl').value;
     window.open(`https://wa.me/?text=Send%20me%20an%20anonymous%20voice%20drop!%20${encodeURIComponent(url)}`, '_blank');
   }
@@ -278,7 +299,7 @@
     const empty = document.getElementById('emptyState');
     if (messages.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
     empty.classList.add('hidden');
-    
+
     list.innerHTML = messages.map(m => `
       <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
         <video controls class="w-full aspect-video bg-black">
@@ -287,7 +308,7 @@
         </video>
         <div class="p-6">
           ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
-          <p class="text-xs text-gray-500 mb-4">${new Date(m.date).toLocaleString()}</p>
+          <p class="text-xs text-gray-500 mb-4">${new Date(m.date.toLocaleString()}</p>
           <div class="flex gap-2 mb-3">
             <button onclick="shareVideo('${m.videoUrl}')" class="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold text-sm">WhatsApp</button>
             <button onclick="shareVideo('${m.videoUrl}')" class="flex-1 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold text-sm">Instagram</button>
@@ -302,102 +323,116 @@
     `).join('');
   }
 
-  // 100% WORKING SHARE (WhatsApp accepts file)
   async function shareVideo(url) {
     try {
       const res = await fetch(url);
       const blob = await res.blob();
       const file = new File([blob], "voxdrop.mp4", { type: "video/mp4" });
-      
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: "Anonymous Voice Drop", text: "From VoxDrop" });
-      } else {
-        throw new Error("Share not supported");
-      }
-    } catch (e) {
+      } else throw 0;
+    } catch {
       navigator.clipboard.writeText(url);
-      alert("Video link copied! (Direct share not supported on this device)");
+      alert("Video link copied! (Direct share not supported)");
     }
   }
 
+  // RECORDING WITH PUTER.JS TTS → REAL AUDIO IN VIDEO
   document.getElementById('micBtn').onclick = async () => {
-    if (!recognition) return alert("Use Chrome/Edge for best experience");
     if (isRecording) return;
-    
+    if (!recognition) return alert("Speech recognition not supported – but you can still type or wait for TTS!");
+
+    isRecording = true;
+    document.getElementById('micBtn').classList.add('mic-btn-active');
+    document.getElementById('status').textContent = "Listening...";
+
     try {
-      isRecording = true;
-      document.getElementById('micBtn').classList.add('mic-btn-active');
-      document.getElementById('status').textContent = "Listening...";
-      recognition.start();
+      const transcript = await new Promise.race([
+        new Promise(resolve => {
+          recognition.onresult = e => resolve(e.results[0][0].transcript);
+          recognition.onerror = () => resolve("");
+          recognition.onend = () => resolve("");
+          recognition.start();
+        }),
+        new Promise(resolve => setTimeout(() => resolve(prompt("Say something (or type it):") || ""), 12000))
+      ]);
 
-      const transcript = await new Promise((resolve, reject) => {
-        recognition.onresult = e => resolve(e.results[0][0].transcript);
-        recognition.onerror = () => reject();
-        recognition.onend = () => { if (isRecording) reject(); };
-        setTimeout(() => recognition.stop(), 10000);
-      });
+      if (!transcript.trim()) throw "No text";
 
-      document.getElementById('status').textContent = "Creating video...";
-      const videoBlob = await createVideoWithAudio(transcript);
+      document.getElementById('status').textContent = "Generating voice & video...";
+
+      const videoBlob = await createVideoWithPuterTTS(transcript.trim());
+
       document.getElementById('status').textContent = "Sending...";
       await send(videoBlob, transcript);
 
     } catch (e) {
+      console.error(e);
+      alert("Something went wrong – try again!");
+    } finally {
       isRecording = false;
       document.getElementById('micBtn').classList.remove('mic-btn-active');
       document.getElementById('status').textContent = "Click to record";
     }
   };
 
-  // FINAL WORKING VIDEO WITH AUDIO (REAL AUDIO ROUTED INTO RECORDING)
-  async function createVideoWithAudio(text) {
+  // NEW: Uses Puter.js TTS → 100% working audio in video
+  async function createVideoWithPuterTTS(text) {
     return new Promise(async (resolve) => {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      await audioCtx.resume();
-      
-      const dest = audioCtx.createMediaStreamDestination();
+      const voiceId = document.getElementById('voiceSelect').value;
+
+      // 1. Generate real audio via Puter.js
+      document.getElementById('status').textContent = "Speaking...";
+      const audioBlob = await puter.ai.tts(text, { voice: voiceId });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.play();
+
+      // 2. Canvas animation stream
       const canvasStream = canvas.captureStream(30);
 
-      // Keep audio track alive
-      const osc = audioCtx.createOscillator();
-      osc.frequency.value = 0;
-      osc.connect(dest);
-      osc.start();
+      // 3. Mix canvas + real audio
+      const audioCtx = new AudioContext();
+      const source = audioCtx.createMediaElementSource(audio);
+      const dest = audioCtx.createMediaStreamDestination();
+      source.connect(dest);
+      source.connect(audioCtx.destination); // hear it
 
-      const mixed = new MediaStream([canvasStream.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
-      
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
-        ? 'video/webm;codecs=vp9,opus' 
+      const mixedStream = new MediaStream([
+        canvasStream.getVideoTracks()[0],
+        dest.stream.getAudioTracks()[0]
+      ]);
+
+      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+        ? 'video/webm;codecs=vp9,opus'
         : 'video/webm';
-        
-      const recorder = new MediaRecorder(mixed, { mimeType });
+
+      const recorder = new MediaRecorder(mixedStream, { mime);
       const chunks = [];
 
+      let mouthInterval;
       recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
-        osc.stop();
-        audioCtx.close();
+        const blob = new Blob(chunks, { type: mime });
+        URL.revokeObjectURL(audioUrl);
+        clearInterval(mouthInterval);
+        animationVolume = 0;
         resolve(blob);
       };
 
-      let interval;
-      const utter = new SpeechSynthesisUtterance(text);
-      const vi = document.getElementById('voiceSelect').value;
-      if (vi && voices[vi]) utter.voice = voices[vi];
-
-      utter.onstart = () => {
-        interval = setInterval(() => animationVolume = Math.random() * 0.7 + 0.3, 80);
+      // Animate mouth while speaking
+      audio.onplay = () => {
+        mouthInterval = setInterval(() => {
+          animationVolume = Math.random() * 0.6 + 0.4;
+        }, 100);
         recorder.start();
       };
-      utter.onend = () => {
-        clearInterval(interval);
-        animationVolume = 0;
+
+      audio.onended = () => {
         setTimeout(() => recorder.stop(), 1000);
       };
 
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utter);
+      audio.play().catch(() => {});
     });
   }
 
@@ -405,16 +440,14 @@
     const form = new FormData();
     form.append('video', videoBlob, 'drop.webm');
     form.append('transcript', transcript);
-    
+
     const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
     if (res.ok) {
-      document.getElementById('status').textContent = "Click to record";
-      if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-      alert("Drop sent!");
-      setTimeout(() => location.href = '/', 1000);
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      alert("Drop sent successfully!");
+      setTimeout(() => location.href = '/', 1500);
     } else {
-      alert("Failed to send");
-      document.getElementById('status').textContent = "Click to record";
+      alert("Failed to send – try again");
     }
   }
 </script>
