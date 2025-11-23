@@ -57,10 +57,16 @@ function loadUsers() {
 
 function saveUsers() {
   try {
-    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+    // Ensure data directory exists
+    if (!fs.existsSync('data')) {
+      fs.mkdirSync('data', { recursive: true });
+    }
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), 'utf8');
     console.log('✓ Saved users to database');
+    return true;
   } catch (e) {
-    console.error('Error saving users:', e);
+    console.error('❌ Error saving users:', e.message);
+    return false;
   }
 }
 
@@ -95,7 +101,11 @@ app.post('/api/register', (req, res) => {
     createdAt: new Date().toISOString()
   };
   
-  saveUsers();
+  const saved = saveUsers();
+  if (!saved) {
+    return res.status(500).json({ error: "Failed to save user. Check server logs." });
+  }
+  
   console.log(`✓ New user registered: ${cleanUsername}`);
   res.json({ success: true, username: cleanUsername });
 });
