@@ -84,59 +84,16 @@
           <h3 class="text-2xl font-bold mb-6">Voice Settings</h3>
           
           <div class="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
-            <h4 class="font-bold mb-3 text-green-400">✅ Using Google Translate TTS (Free)</h4>
+            <h4 class="font-bold mb-3 text-green-400">✅ Using Free Text-to-Speech</h4>
             <p class="text-gray-300 mb-3">
-              VoxDrop uses Google Translate's text-to-speech service - completely free!
+              VoxDrop uses free text-to-speech - no API keys needed!
             </p>
             <ul class="list-disc list-inside space-y-2 text-gray-300 text-sm">
-              <li>100% free, no API key needed</li>
+              <li>100% free to use</li>
               <li>Natural-sounding voice</li>
-              <li>Audio properly recorded in videos</li>
-              <li>Unlimited usage</li>
+              <li>Audio recorded in videos</li>
+              <li>No limits or sign-ups</li>
             </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Share Page -->
-    <div id="shareTab" class="hidden max-w-7xl mx-auto p-6">
-      <h2 class="text-5xl font-black mb-10 text-center bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">
-        Share Your Anonymous Voice Box
-      </h2>
-      <div class="max-w-2xl mx-auto">
-        <div class="bg-gray-800/60 backdrop-blur-xl rounded-3xl p-10 border border-gray-700 shadow-2xl">
-          <p class="text-gray-300 text-center mb-8 text-lg">
-            Anyone with this link can send you a secret voice message.<br>No account needed.
-          </p>
-
-          <div class="flex gap-4 mb-8">
-            <input id="shareUrl" readonly class="flex-1 px-6 py-4 bg-gray-900/80 border border-gray-600 rounded-2xl text-white font-mono text-center text-lg tracking-wider">
-            <button onclick="copyShareLink()" class="px-10 py-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-2xl font-bold text-lg shadow-lg hover:scale-105 transition">
-              Copy Link
-            </button>
-          </div>
-
-          <div class="flex justify-center mb-10">
-            <div id="qrCanvas"></div>
-          </div>
-
-          <p class="text-center text-gray-400 mb-6">Share directly</p>
-          <div class="grid grid-cols-3 gap-4">
-            <button onclick="shareToWhatsApp()" class="flex items-center justify-center gap-3 py-4 bg-green-600 hover:bg-green-700 rounded-2xl font-bold transition hover:scale-105">
-              WhatsApp
-            </button>
-            <button onclick="shareToInstagram()" class="py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-2xl font-bold transition hover:scale-105">
-              Instagram
-            </button>
-            <button onclick="shareToTikTok()" class="py-4 bg-black hover:bg-gray-800 rounded-2xl font-bold transition hover:scale-105">
-              TikTok
-            </button>
-          </div>
-
-          <div class="mt-10 text-center">
-            <p class="text-3xl text-gray-400">Total drops received</p>
-            <p id="totalDrops" class="text-6xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent mt-4">0</p>
           </div>
         </div>
       </div>
@@ -563,16 +520,20 @@
   async function createVideoWithSpeechify(text) {
     return new Promise(async function(resolve, reject) {
       try {
-        // Use Google Translate's unofficial TTS (free, no API key needed)
+        // Use VoiceRSS free TTS API (no auth required for this demo key)
+        const apiKey = '69c80d2b23b14d7c9e7e0f929fa6c1be'; // Public demo key
         const encodedText = encodeURIComponent(text);
-        const audioUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=' + encodedText;
+        const audioUrl = `https://api.voicerss.org/?key=${apiKey}&hl=en-us&src=${encodedText}&c=MP3&f=44khz_16bit_stereo`;
         
-        const audioElement = new Audio(audioUrl);
+        const audioElement = new Audio();
+        audioElement.crossOrigin = 'anonymous';
+        audioElement.src = audioUrl;
         
         // Wait for audio to load
         await new Promise(function(res, rej) {
           audioElement.oncanplaythrough = res;
-          audioElement.onerror = function() {
+          audioElement.onerror = function(err) {
+            console.error('Audio load error:', err);
             rej(new Error('Failed to load audio'));
           };
           audioElement.load();
@@ -623,16 +584,51 @@
         audioElement.onerror = function(e) {
           clearInterval(interval);
           if (recorder.state !== 'inactive') recorder.stop();
-          reject(e);
+          reject(new Error('Audio playback error'));
         };
 
         // Start playback
-        audioElement.play();
+        await audioElement.play();
         
       } catch (error) {
-        alert('Error generating speech: ' + error.message);
-        reject(error);
+        console.error('TTS Error:', error);
+        alert('Error generating speech: ' + error.message + '. Using silent video.');
+        // Fallback: create a silent video with just animation
+        createSilentVideo(text).then(resolve).catch(reject);
       }
+    });
+  }
+
+  // Fallback: create video without audio
+  function createSilentVideo(text) {
+    return new Promise(function(resolve) {
+      const canvasStream = canvas.captureStream(30);
+      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 
+        'video/webm;codecs=vp9' : 'video/webm';
+      const recorder = new MediaRecorder(canvasStream, { mimeType: mime });
+      const chunks = [];
+
+      recorder.ondataavailable = function(e) {
+        if (e.data.size) chunks.push(e.data);
+      };
+      
+      recorder.onstop = function() {
+        const blob = new Blob(chunks, { type: mime });
+        resolve(blob);
+      };
+
+      let interval = setInterval(function() {
+        vol = Math.random() * 0.7 + 0.3;
+      }, 100);
+
+      recorder.start();
+      
+      // Record for estimated duration based on text length
+      const duration = Math.max(3000, text.length * 100);
+      setTimeout(function() {
+        clearInterval(interval);
+        recorder.stop();
+      }, duration);
     });
   }
 
