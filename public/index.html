@@ -63,9 +63,7 @@
     <!-- Inbox Tab -->
     <div id="inboxTab" class="max-w-7xl mx-auto p-6">
       <h2 class="text-4xl font-bold mb-8">Your Voice Box</h2>
-      <div id="messagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Messages load here -->
-      </div>
+      <div id="messagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       <div id="emptyState" class="text-center py-16">
         <p class="text-2xl text-gray-400">No drops yet</p>
         <p class="text-gray-500 mt-2">Share your link to receive anonymous voice messages</p>
@@ -81,7 +79,6 @@
           <input id="shareUrl" readonly class="flex-1 p-4 rounded-lg bg-gray-700 text-white font-mono text-lg">
           <button onclick="copyShareLink()" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg font-bold transition">Copy</button>
         </div>
-       
         <p class="text-gray-400 mb-4 text-sm">Share directly to:</p>
         <div class="grid grid-cols-3 gap-3">
           <button onclick="shareToWhatsApp()" class="py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition flex items-center justify-center gap-2">
@@ -138,22 +135,21 @@
 </div>
 
 <script>
-  // CRITICAL: Unlock audio on mobile (must be first!)
-  const unlockAudio = () => {
+  // Unlock audio on mobile
+  const unlock = () => {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
-    document.removeEventListener('touchstart', unlockAudio);
-    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('click', unlock);
+    document.removeEventListener('touchstart', unlock);
   };
-  document.addEventListener('touchstart', unlockAudio);
-  document.addEventListener('click', unlockAudio);
+  document.addEventListener('click', unlock);
+  document.addEventListener('touchstart', unlock);
 
   let currentUser = null;
   let targetUsername = null;
   let isRecording = false;
   let recognition = null;
   let voices = [];
-  let speechTimeout = null;
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const characters = [
@@ -165,32 +161,25 @@
 
   function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Speech recognition not supported in this browser. Try Chrome or Edge.");
-      return null;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-    return recognition;
+    if (!SpeechRecognition) return null;
+    const r = new SpeechRecognition();
+    r.continuous = false;
+    r.interimResults = false;
+    r.lang = 'en-US';
+    return r;
   }
 
   function loadVoices() {
     voices = speechSynthesis.getVoices();
     const select = document.getElementById('voiceSelect');
     if (voices.length > 0) {
-      select.innerHTML = voices.map((voice, i) =>
-        `<option value="${i}">${voice.name} (${voice.lang})</option>`
-      ).join('');
-      const defaultVoice = voices.findIndex(v => v.name.includes('Google') || v.name.includes('Female') || v.default);
-      if (defaultVoice >= 0) select.value = defaultVoice;
+      select.innerHTML = voices.map((v, i) => `<option value="${i}">${v.name} (${v.lang})</option>`).join('');
+      const good = voices.findIndex(v => /google|female|natural/i.test(v.name));
+      if (good >= 0) select.value = good;
     }
   }
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = loadVoices;
-  }
-  setTimeout(loadVoices, 100);
+  speechSynthesis.onvoiceschanged = loadVoices;
+  setTimeout(loadVoices, 200);
 
   function draw(volume = 0) {
     const char = characters[document.getElementById('character')?.value || 0];
@@ -200,29 +189,15 @@
     ctx.save();
     ctx.translate(150, 200);
     ctx.scale(scale, scale);
-    ctx.beginPath();
-    ctx.arc(0, 0, 90, 0, Math.PI * 2);
-    ctx.fillStyle = char.color;
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, 90, 0, Math.PI * 2); ctx.fillStyle = char.color; ctx.fill();
     ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(-35, char.eyeY, 20, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(35, char.eyeY, 20, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(-35, char.eyeY, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(35, char.eyeY, 20, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = 'black';
-    ctx.beginPath();
-    ctx.arc(-35, char.eyeY, 10, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(35, char.eyeY, 10, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(-35, char.eyeY, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(35, char.eyeY, 10, 0, Math.PI * 2); ctx.fill();
     const mouth = 5 + volume * 70;
-    ctx.beginPath();
-    ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI * 2);
-    ctx.fillStyle = 'black';
-    ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI * 2); ctx.fillStyle = 'black'; ctx.fill();
     ctx.restore();
   }
   let animationVolume = 0;
@@ -238,10 +213,8 @@
     document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
     document.getElementById('loginTab').classList.toggle('border-pink-500', tab === 'login');
     document.getElementById('loginTab').classList.toggle('text-white', tab === 'login');
-    document.getElementById('loginTab').classList.toggle('text-gray-400', tab !== 'login');
     document.getElementById('registerTab').classList.toggle('border-pink-500', tab === 'register');
     document.getElementById('registerTab').classList.toggle('text-white', tab === 'register');
-    document.getElementById('registerTab').classList.toggle('text-gray-400', tab !== 'register');
   }
 
   function showTab(tab) {
@@ -279,53 +252,26 @@
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
     if (!username || !password) return alert("Enter username and password");
-   
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, password})
-    });
-   
-    if (res.ok) {
-      currentUser = username;
-      localStorage.setItem('currentUser', username);
-      showLoggedIn();
-    } else {
-      alert("Invalid credentials");
-    }
+    const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, password}) });
+    if (res.ok) { currentUser = username; localStorage.setItem('currentUser', username); showLoggedIn(); } 
+    else alert("Invalid credentials");
   }
 
   async function register() {
     const username = document.getElementById('regUsername').value.trim();
     const password = document.getElementById('regPassword').value;
     const password2 = document.getElementById('regPassword2').value;
-   
     if (!username || !password) return alert("Enter username and password");
     if (password !== password2) return alert("Passwords don't match");
-   
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, password})
-    });
-   
-    if (res.ok) {
-      currentUser = username;
-      localStorage.setItem('currentUser', username);
-      showLoggedIn();
-    } else {
-      const err = await res.json();
-      alert(err.error || "Registration failed");
-    }
+    const res = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, password}) });
+    if (res.ok) { currentUser = username; localStorage.setItem('currentUser', username); showLoggedIn(); } 
+    else { const err = await res.json(); alert(err.error || "Registration failed"); }
   }
 
   function logout() {
-    currentUser = null;
-    localStorage.removeItem('currentUser');
+    currentUser = null; localStorage.removeItem('currentUser');
     document.getElementById('mainApp').classList.add('hidden');
     document.getElementById('authScreen').classList.remove('hidden');
-    document.getElementById('loginUsername').value = '';
-    document.getElementById('loginPassword').value = '';
   }
 
   function copyShareLink() {
@@ -333,57 +279,34 @@
     alert("Link copied!");
   }
 
-  function shareToWhatsApp() {
-    const url = document.getElementById('shareUrl').value;
-    const text = `Send me an anonymous voice message on VoxDrop!`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
-    window.open(whatsappUrl, '_blank');
-  }
-
-  function shareToInstagram() {
-    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
-    alert("Link copied! Paste it in your Instagram bio or story.");
-  }
-
-  function shareToTikTok() {
-    navigator.clipboard.writeText(document.getElementById('shareUrl').value);
-    alert("Link copied! Paste it in your TikTok bio or video description.");
-  }
+  function shareToWhatsApp() { const url = document.getElementById('shareUrl').value; window.open(`https://wa.me/?text=Send me an anonymous voice drop! ${encodeURIComponent(url)}`, '_blank'); }
+  function shareToInstagram() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied! Paste in Instagram bio/story"); }
+  function shareToTikTok() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied! Paste in TikTok bio"); }
 
   async function loadInbox() {
     const res = await fetch('/api/inbox/' + currentUser);
     const messages = await res.json();
     const list = document.getElementById('messagesList');
     const empty = document.getElementById('emptyState');
-   
-    if (messages.length === 0) {
-      list.innerHTML = '';
-      empty.classList.remove('hidden');
-      return;
-    }
-   
+    if (messages.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
     empty.classList.add('hidden');
-    list.innerHTML = messages.map((m, idx) => `
+    list.innerHTML = messages.map(m => `
       <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
-        <video src="${m.videoUrl}" controls class="w-full aspect-video bg-gray-900"></video>
+        <video controls class="w-full aspect-video bg-black">
+          <source src="${m.videoUrl}" type="video/webm">
+          <source src="${m.videoUrl.replace('.webm', '.mp4')}" type="video/mp4">
+          Your browser cannot play this video.
+        </video>
         <div class="p-6">
           ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
           <p class="text-xs text-gray-500 mb-4">${new Date(m.date).toLocaleString()}</p>
-         
           <div class="flex gap-2 mb-3">
-            <button onclick="shareVideoToWhatsApp('${m.videoUrl}')" class="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition text-sm">
-              WhatsApp
-            </button>
-            <button onclick="shareVideoToInstagram('${m.videoUrl}')" class="flex-1 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold transition text-sm">
-              Instagram
-            </button>
-            <button onclick="shareVideoToTikTok('${m.videoUrl}')" class="flex-1 py-2 bg-gray-900 hover:bg-black rounded-lg font-semibold transition text-sm">
-              TikTok
-            </button>
+            <button onclick="shareVideoToWhatsApp('${m.videoUrl}')" class="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition text-sm">WhatsApp</button>
+            <button onclick="shareVideoToInstagram('${m.videoUrl}')" class="flex-1 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold transition text-sm">Instagram</button>
+            <button onclick="shareVideoToTikTok('${m.videoUrl}')" class="flex-1 py-2 bg-gray-900 hover:bg-black rounded-lg font-semibold transition text-sm">TikTok</button>
           </div>
-         
           <div class="flex gap-2">
-            <a href="${m.videoUrl}" download="voxdrop-secret-admirer.mp4" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-center transition text-sm">Download</a>
+            <a href="${m.videoUrl}" download="voxdrop-secret.mp4" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-center transition text-sm">Download</a>
             <button onclick="navigator.clipboard.writeText(location.origin + '${m.videoUrl}')" class="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition text-sm">Copy Link</button>
           </div>
         </div>
@@ -391,141 +314,94 @@
     `).join('');
   }
 
-  // REAL VIDEO SHARING (actual file, not just link)
-  async function shareVideoToWhatsApp(videoUrl) { await shareVideoFile(videoUrl); }
-  async function shareVideoToInstagram(videoUrl) { await shareVideoFile(videoUrl); }
-  async function shareVideoToTikTok(videoUrl) { await shareVideoFile(videoUrl); }
-
-  async function shareVideoFile(videoUrl) {
+  // Smart video sharing (real file on Android, smart fallback on iOS)
+  async function shareVideoFile(url) {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      navigator.clipboard.writeText(location.origin + url);
+      alert("Video link copied! On iPhone, paste into Messages or save to Photos");
+      return;
+    }
     try {
-      const response = await fetch(videoUrl);
-      const blob = await response.blob();
+      const res = await fetch(url);
+      const blob = await res.blob();
       const file = new File([blob], "voxdrop.mp4", { type: "video/mp4" });
-
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: "Anonymous voice drop!",
-          text: "Check out this voice message from VoxDrop"
-        });
-      } else {
-        throw new Error("Cannot share file");
-      }
-    } catch (err) {
-      navigator.clipboard.writeText(location.origin + videoUrl);
+        await navigator.share({ files: [file], title: "Anonymous voice drop!", text: "From VoxDrop" });
+      } else throw 1;
+    } catch {
+      navigator.clipboard.writeText(location.origin + url);
       alert("Video link copied to clipboard!");
     }
   }
+  window.shareVideoToWhatsApp = shareVideoFile;
+  window.shareVideoToInstagram = shareVideoFile;
+  window.shareVideoToTikTok = shareVideoFile;
 
-  const micBtn = document.getElementById('micBtn');
- 
-  micBtn.onclick = async () => {
-    if (!recognition) {
-      alert("Speech recognition not available. Please use Chrome or Edge.");
-      return;
-    }
+  document.getElementById('micBtn').onclick = async () => {
+    if (!recognition) return alert("Speech recognition not supported. Use Chrome/Edge.");
     if (isRecording) return;
     try {
       isRecording = true;
-      micBtn.classList.add('mic-btn-active');
+      document.getElementById('micBtn').classList.add('mic-btn-active');
       document.getElementById('status').textContent = "Listening...";
       recognition.start();
-     
-      speechTimeout = setTimeout(() => {
-        if (isRecording && recognition) {
-          recognition.stop();
-        }
-      }, 10000);
 
-      const transcript = await new Promise((resolve, reject) => {
-        recognition.onresult = (event) => {
-          clearTimeout(speechTimeout);
-          resolve(event.results[0][0].transcript);
-        };
-        recognition.onerror = (event) => {
-          clearTimeout(speechTimeout);
-          reject(event.error);
-        };
-        recognition.onend = () => {
-          clearTimeout(speechTimeout);
-          if (isRecording) reject("No speech detected");
-        };
+      const transcript = await new Promise((res, rej) => {
+        recognition.onresult = e => res(e.results[0][0].transcript);
+        recognition.onerror = e => rej(e.error);
+        recognition.onend = () => { if (isRecording) rej("No speech"); };
+        setTimeout(() => { if (isRecording) recognition.stop(); }, 10000);
       });
 
-      isRecording = false;
-      micBtn.classList.remove('mic-btn-active');
-      document.getElementById('status').textContent = "Creating video...";
-       
+      document.getElementById('status').textContent = "Generating video...";
       const videoBlob = await renderVideoWithSpeech(transcript);
       document.getElementById('status').textContent = "Sending...";
       await send(videoBlob, transcript);
-     
     } catch (e) {
       isRecording = false;
-      micBtn.classList.remove('mic-btn-active');
+      document.getElementById('micBtn').classList.remove('mic-btn-active');
       document.getElementById('status').textContent = "Click to record";
-      if (e !== "No speech detected") alert("Error: " + e);
     }
   };
 
-  // 100% WORKING VIDEO + AUDIO RENDERER (GUARANTEED SOUND)
   async function renderVideoWithSpeech(text) {
     return new Promise(async (resolve, reject) => {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioContext.state === 'suspended') await audioContext.resume();
-      
-      const dest = audioContext.createMediaStreamDestination();
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      const dest = audioCtx.createMediaStreamDestination();
+
       const canvasStream = canvas.captureStream(30);
+      const silent = audioCtx.createBufferSource();
+      silent.buffer = audioCtx.createBuffer(1, 1, 22050);
+      silent.connect(dest);
+      silent.start();
 
-      // Keep audio track alive
-      const silentSource = audioContext.createBufferSource();
-      silentSource.buffer = audioContext.createBuffer(1, 1, 22050);
-      silentSource.connect(dest);
-      silentSource.start();
-
-      const mixedStream = new MediaStream([
-        canvasStream.getVideoTracks()[0],
-        dest.stream.getAudioTracks()[0]
-      ]);
-
-      const recorder = new MediaRecorder(mixedStream, {
-        mimeType: 'video/webm;codecs=vp9,opus'
-      });
-
+      const mixed = new MediaStream([canvasStream.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
+      const recorder = new MediaRecorder(mixed, { mimeType: 'video/webm;codecs=vp9,opus' });
       const chunks = [];
-      recorder.ondataavailable = e => e.data.size > 0 && chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        audioContext.close();
-        resolve(blob);
-      };
 
-      let mouthInterval;
-      const utterance = new SpeechSynthesisUtterance(text);
-      const voiceIndex = document.getElementById('voiceSelect').value;
-      if (voiceIndex && voices[voiceIndex]) utterance.voice = voices[voiceIndex];
+      recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+      recorder.onstop = () => { resolve(new Blob(chunks, { type: 'video/webm' })); audioCtx.close(); };
 
-      utterance.onstart = () => {
-        mouthInterval = setInterval(() => {
-          animationVolume = Math.random() * 0.7 + 0.3;
-        }, 80);
+      let interval;
+      const utter = new SpeechSynthesisUtterance(text);
+      const vi = document.getElementById('voiceSelect').value;
+      if (vi && voices[vi]) utter.voice = voices[vi];
+
+      utter.onstart = () => {
+        interval = setInterval(() => animationVolume = Math.random() * 0.7 + 0.3, 80);
         recorder.start();
       };
-
-      utterance.onend = () => {
-        clearInterval(mouthInterval);
+      utter.onend = () => {
+        clearInterval(interval);
         animationVolume = 0;
         setTimeout(() => recorder.stop(), 800);
       };
-
-      utterance.onerror = () => {
-        clearInterval(mouthInterval);
-        recorder.stop();
-        reject("Speech synthesis failed");
-      };
+      utter.onerror = () => { clearInterval(interval); recorder.stop(); reject(); };
 
       speechSynthesis.cancel();
-      speechSynthesis.speak(utterance);
+      speechSynthesis.speak(utter);
     });
   }
 
@@ -533,24 +409,14 @@
     const form = new FormData();
     form.append('video', videoBlob, 'drop.webm');
     form.append('transcript', transcript);
-   
-    try {
-      const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
-      const data = await res.json();
-     
-      if (res.ok) {
-        document.getElementById('status').textContent = "Click to record";
-        if (typeof confetti !== 'undefined') {
-          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        }
-        alert("Drop sent!");
-        setTimeout(() => location.href = '/', 1000);
-      } else {
-        alert("Failed to send: " + (data.error || "Unknown error"));
-        document.getElementById('status').textContent = "Click to record";
-      }
-    } catch (err) {
-      alert("Network error: " + err.message);
+    const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
+    if (res.ok) {
+      document.getElementById('status').textContent = "Click to record";
+      if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      alert("Drop sent!");
+      setTimeout(() => location.href = '/', 1000);
+    } else {
+      alert("Failed to send");
       document.getElementById('status').textContent = "Click to record";
     }
   }
