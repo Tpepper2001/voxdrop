@@ -143,6 +143,47 @@
       </div>
     </div>
   </div>
+      <h2 class="text-5xl font-black mb-10 text-center bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">
+        Share Your Anonymous Voice Box
+      </h2>
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-gray-800/60 backdrop-blur-xl rounded-3xl p-10 border border-gray-700 shadow-2xl">
+          <p class="text-gray-300 text-center mb-8 text-lg">
+            Anyone with this link can send you a secret voice message.<br>No account needed.
+          </p>
+
+          <div class="flex gap-4 mb-8">
+            <input id="shareUrl" readonly class="flex-1 px-6 py-4 bg-gray-900/80 border border-gray-600 rounded-2xl text-white font-mono text-center text-lg tracking-wider">
+            <button onclick="copyShareLink()" class="px-10 py-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-2xl font-bold text-lg shadow-lg hover:scale-105 transition">
+              Copy Link
+            </button>
+          </div>
+
+          <div class="flex justify-center mb-10">
+            <div id="qrCanvas"></div>
+          </div>
+
+          <p class="text-center text-gray-400 mb-6">Share directly</p>
+          <div class="grid grid-cols-3 gap-4">
+            <button onclick="shareToWhatsApp()" class="flex items-center justify-center gap-3 py-4 bg-green-600 hover:bg-green-700 rounded-2xl font-bold transition hover:scale-105">
+              WhatsApp
+            </button>
+            <button onclick="shareToInstagram()" class="py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-2xl font-bold transition hover:scale-105">
+              Instagram
+            </button>
+            <button onclick="shareToTikTok()" class="py-4 bg-black hover:bg-gray-800 rounded-2xl font-bold transition hover:scale-105">
+              TikTok
+            </button>
+          </div>
+
+          <div class="mt-10 text-center">
+            <p class="text-3xl text-gray-400">Total drops received</p>
+            <p id="totalDrops" class="text-6xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent mt-4">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Recording Screen -->
   <div id="recordingTab" class="hidden min-h-screen flex items-center justify-center p-6">
