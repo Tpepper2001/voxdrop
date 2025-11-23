@@ -106,6 +106,13 @@
             </select>
           </div>
 
+          <div>
+            <label class="block text-gray-300 mb-3 font-semibold">Choose Voice</label>
+            <select id="voiceSelect" class="w-full p-4 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+              <option value="">Loading voices...</option>
+            </select>
+          </div>
+
           <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-700"></canvas>
 
           <div class="flex flex-col items-center gap-4">
@@ -114,7 +121,7 @@
                 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
               </svg>
             </button>
-            <p id="status" class="text-lg text-gray-300 font-semibold">Hold to record</p>
+            <p id="status" class="text-lg text-gray-300 font-semibold">Click to record</p>
           </div>
 
           <button onclick="location.href='/'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg transition">Get Your Own Box</button>
@@ -126,13 +133,16 @@
 </div>
 
 <script>
-  // CONFIGURATION - Add your Gemini API key here
-  const GEMINI_API_KEY = "AIzaSyDJtXVne3nyfA-hAHWx8W7bU4A-HG52kr4";
-
+  // NO API KEYS NEEDED - Uses free browser APIs!
+  
   let currentUser = null;
   let targetUsername = null;
   let isRecording = false;
-  let recorder, stream;
+  let recognition = null;
+  let audioChunks = [];
+  let mediaRecorder = null;
+  let stream = null;
+  let voices = [];
 
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
@@ -143,26 +153,83 @@
     { color: "#fbbf24", eyeY: -20 }
   ];
 
+  // Initialize Speech Recognition
+  function initSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech recognition not supported in this browser. Try Chrome or Edge.");
+      return null;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    return recognition;
+  }
+
+  // Load available voices
+  function loadVoices() {
+    voices = speechSynthesis.getVoices();
+    const select = document.getElementById('voiceSelect');
+    if (voices.length > 0) {
+      select.innerHTML = voices.map((voice, i) => 
+        `<option value="${i}">${voice.name} (${voice.lang})</option>`
+      ).join('');
+      // Try to select a good default voice
+      const defaultVoice = voices.findIndex(v => v.name.includes('Google') || v.name.includes('Female') || v.default);
+      if (defaultVoice >= 0) select.value = defaultVoice;
+    }
+  }
+
+  // Load voices when available
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  setTimeout(loadVoices, 100);
+
   function draw(volume = 0) {
     const char = characters[document.getElementById('character')?.value || 0];
-    ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,300,400);
+    ctx.fillStyle = '#0f172a'; 
+    ctx.fillRect(0, 0, 300, 400);
     const scale = 1 + volume * 0.3;
-    ctx.save(); ctx.translate(150, 200); ctx.scale(scale, scale);
-    ctx.beginPath(); ctx.arc(0, 0, 90, 0, Math.PI*2); ctx.fillStyle = char.color; ctx.fill();
+    ctx.save(); 
+    ctx.translate(150, 200); 
+    ctx.scale(scale, scale);
+    ctx.beginPath(); 
+    ctx.arc(0, 0, 90, 0, Math.PI * 2); 
+    ctx.fillStyle = char.color; 
+    ctx.fill();
     ctx.fillStyle = 'white';
-    ctx.beginPath(); ctx.arc(-35, char.eyeY, 20, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(35, char.eyeY, 20, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); 
+    ctx.arc(-35, char.eyeY, 20, 0, Math.PI * 2); 
+    ctx.fill();
+    ctx.beginPath(); 
+    ctx.arc(35, char.eyeY, 20, 0, Math.PI * 2); 
+    ctx.fill();
     ctx.fillStyle = 'black';
-    ctx.beginPath(); ctx.arc(-35, char.eyeY, 10, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(35, char.eyeY, 10, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); 
+    ctx.arc(-35, char.eyeY, 10, 0, Math.PI * 2); 
+    ctx.fill();
+    ctx.beginPath(); 
+    ctx.arc(35, char.eyeY, 10, 0, Math.PI * 2); 
+    ctx.fill();
     const mouth = 5 + volume * 70;
-    ctx.beginPath(); ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI*2); ctx.fillStyle = 'black'; ctx.fill();
+    ctx.beginPath(); 
+    ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI * 2); 
+    ctx.fillStyle = 'black'; 
+    ctx.fill();
     ctx.restore();
   }
-  function animate() { draw(); requestAnimationFrame(animate); }
+
+  let animationVolume = 0;
+  function animate() { 
+    draw(animationVolume); 
+    animationVolume *= 0.95; // Smooth decay
+    requestAnimationFrame(animate); 
+  }
   animate();
 
-  // Auth tab switching (for login/register)
+  // Auth tab switching
   function switchAuthTab(tab) {
     document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
     document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
@@ -174,7 +241,6 @@
     document.getElementById('registerTab').classList.toggle('text-gray-400', tab !== 'register');
   }
 
-  // Main app tab switching (for inbox/share)
   function showTab(tab) {
     if (currentUser) {
       document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
@@ -191,6 +257,7 @@
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
       document.getElementById('recordingTab').classList.remove('hidden');
+      recognition = initSpeechRecognition();
     } else if (localStorage.getItem('currentUser')) {
       currentUser = localStorage.getItem('currentUser');
       showLoggedIn();
@@ -297,44 +364,116 @@
     `).join('');
   }
 
-  // Recording
+  // Recording with Web Speech API
   const micBtn = document.getElementById('micBtn');
-  micBtn.onpointerdown = async () => {
+  
+  micBtn.onclick = async () => {
+    if (!recognition) {
+      alert("Speech recognition not available. Please use Chrome or Edge.");
+      return;
+    }
+
     if (isRecording) return;
+
     try {
-      stream = await navigator.mediaDevices.getUserMedia({audio: true});
-      recorder = new MediaRecorder(stream);
-      const chunks = [];
-      recorder.ondataavailable = e => chunks.push(e.data);
-      recorder.onstop = () => processAudio(new Blob(chunks));
-      recorder.start();
+      // Start audio recording
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      
+      mediaRecorder.ondataavailable = (e) => {
+        audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        // Don't need the original audio anymore since we'll synthesize
+      };
+
+      mediaRecorder.start();
       isRecording = true;
       micBtn.classList.add('mic-btn-active');
-      document.getElementById('status').textContent = "Recording...";
-    } catch (e) { alert("Microphone blocked"); }
-  };
-  micBtn.onpointerup = micBtn.onpointerleave = () => {
-    if (isRecording) {
-      recorder.stop();
-      stream.getTracks().forEach(t => t.stop());
-      isRecording = false;
-      micBtn.classList.remove('mic-btn-active');
-      document.getElementById('status').textContent = "Processing...";
+      document.getElementById('status').textContent = "Listening...";
+
+      // Start speech recognition
+      recognition.start();
+      
+      recognition.onresult = async (event) => {
+        const transcript = event.results[0][0].transcript;
+        console.log('Transcribed:', transcript);
+        
+        // Stop recording
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+        if (stream) {
+          stream.getTracks().forEach(t => t.stop());
+        }
+        
+        isRecording = false;
+        micBtn.classList.remove('mic-btn-active');
+        
+        // Process the transcript
+        await processTranscript(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Recognition error:', event.error);
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+        if (stream) {
+          stream.getTracks().forEach(t => t.stop());
+        }
+        isRecording = false;
+        micBtn.classList.remove('mic-btn-active');
+        document.getElementById('status').textContent = "Error: " + event.error;
+        alert("Speech recognition error: " + event.error);
+      };
+
+      recognition.onend = () => {
+        if (isRecording) {
+          // If still recording but recognition ended, stop everything
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+          }
+          if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+          }
+          isRecording = false;
+          micBtn.classList.remove('mic-btn-active');
+          document.getElementById('status').textContent = "Click to record";
+        }
+      };
+
+    } catch (e) {
+      console.error('Microphone error:', e);
+      alert("Microphone access denied or not available");
+      document.getElementById('status').textContent = "Click to record";
     }
   };
 
-  async function processAudio(blob) {
+  async function processTranscript(transcript) {
+    if (!transcript || transcript.trim().length === 0) {
+      alert("No speech detected. Please try again.");
+      document.getElementById('status').textContent = "Click to record";
+      return;
+    }
+
     try {
-      document.getElementById('status').textContent = "Transcribing...";
-      const b64 = await blobToBase64(blob);
-      const text = await transcribe(b64);
-      
       document.getElementById('status').textContent = "Synthesizing voice...";
-      const audioUrl = await synthesize(text);
+      
+      // Synthesize speech
+      const audioUrl = await synthesizeSpeech(transcript);
       
       document.getElementById('status').textContent = "Rendering video...";
-      const videoBlob = await renderVideo(audioUrl);
-      await send(videoBlob, text);
+      
+      // Render video with animated avatar
+      const videoBlob = await renderVideo(audioUrl, transcript);
+      
+      // Send to server
+      await send(videoBlob, transcript);
+      
     } catch (err) {
       console.error('Processing error:', err);
       document.getElementById('status').textContent = "Error: " + err.message;
@@ -342,66 +481,52 @@
     }
   }
 
-  async function send(videoBlob, transcript) {
-    const form = new FormData();
-    form.append('video', videoBlob, 'drop.webm');
-    form.append('transcript', transcript);
-    try {
-      const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
-      const data = await res.json();
-      if (res.ok) {
-        document.getElementById('status').textContent = "Hold to record";
-        if (typeof confetti !== 'undefined') {
-          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        }
-        alert("✨ Drop sent!");
-        setTimeout(() => location.href = '/', 1000);
-      } else {
-        alert("Failed to send: " + (data.error || "Unknown error"));
-        document.getElementById('status').textContent = "Error: " + (data.error || "Send failed");
+  async function synthesizeSpeech(text) {
+    return new Promise((resolve, reject) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Get selected voice
+      const voiceIndex = document.getElementById('voiceSelect').value;
+      if (voiceIndex && voices[voiceIndex]) {
+        utterance.voice = voices[voiceIndex];
       }
-    } catch (err) {
-      alert("Network error: " + err.message);
-      document.getElementById('status').textContent = "Error: " + err.message;
-    }
-  }
+      
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
 
-  async function transcribe(b64) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ contents: [{ parts: [{text: "Transcribe this audio exactly."}, {inlineData: {mimeType: "audio/webm", data: b64}}]}]})
-    });
-    const json = await res.json();
-    if (json.error) throw new Error(json.error.message);
-    return json.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-  }
+      // Create audio context to capture speech
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const dest = audioContext.createMediaStreamDestination();
+      const mediaRecorder = new MediaRecorder(dest.stream);
+      const chunks = [];
 
-  async function synthesize(text) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ 
-        contents: [{ parts: [{text}] }], 
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: {
-                voiceName: "Kore"
-              }
-            }
-          }
-        }
-      })
+      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        resolve(url);
+      };
+
+      utterance.onstart = () => {
+        mediaRecorder.start();
+      };
+
+      utterance.onend = () => {
+        setTimeout(() => mediaRecorder.stop(), 500);
+      };
+
+      utterance.onerror = (e) => {
+        reject(new Error("Speech synthesis error: " + e.error));
+      };
+
+      // Animate mouth while speaking
+      utterance.onboundary = () => {
+        animationVolume = Math.random() * 0.5 + 0.5;
+      };
+
+      speechSynthesis.speak(utterance);
     });
-    const json = await res.json();
-    if (json.error) throw new Error(json.error.message);
-    const data = json.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!data) throw new Error("No audio in response");
-    const binaryStr = atob(data);
-    const bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-    const wav = pcmToWav(bytes, 24000);
-    return URL.createObjectURL(wav);
   }
 
   async function renderVideo(audioUrl) {
@@ -410,56 +535,47 @@
       const mediaStream = canvas.captureStream(30);
       const rec = new MediaRecorder(mediaStream);
       const chunks = [];
-      rec.ondataavailable = e => chunks.push(e.data);
-      rec.onstop = () => resolve(new Blob(chunks, {type: 'video/webm'}));
+
+      rec.ondataavailable = (e) => chunks.push(e.data);
+      rec.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }));
+
       audio.onplay = () => rec.start();
       audio.onended = () => setTimeout(() => rec.stop(), 500);
-      audio.onerror = (e) => reject(new Error("Audio error"));
-      audio.play().catch(err => reject(new Error("Play failed")));
+      audio.onerror = () => reject(new Error("Audio playback error"));
+
+      // Animate during playback
+      audio.ontimeupdate = () => {
+        animationVolume = Math.random() * 0.5 + 0.3;
+      };
+
+      audio.play().catch(err => reject(new Error("Play failed: " + err.message)));
     });
   }
 
-  function blobToBase64(b) { 
-    return new Promise((r) => {
-      const a = new FileReader(); 
-      a.onload = () => r(a.result.split(',')[1]); 
-      a.readAsDataURL(b);
-    }); 
-  }
-
-  function writeString(view, offset, string) {
-    for (let i = 0; i < string.length; i++) {
-      view.setUint8(offset + i, string.charCodeAt(i));
+  async function send(videoBlob, transcript) {
+    const form = new FormData();
+    form.append('video', videoBlob, 'drop.webm');
+    form.append('transcript', transcript);
+    
+    try {
+      const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
+      const data = await res.json();
+      
+      if (res.ok) {
+        document.getElementById('status').textContent = "Click to record";
+        if (typeof confetti !== 'undefined') {
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+        alert("✨ Drop sent!");
+        setTimeout(() => location.href = '/', 1000);
+      } else {
+        alert("Failed to send: " + (data.error || "Unknown error"));
+        document.getElementById('status').textContent = "Click to record";
+      }
+    } catch (err) {
+      alert("Network error: " + err.message);
+      document.getElementById('status').textContent = "Click to record";
     }
-  }
-
-  function pcmToWav(pcm16, sampleRate) {
-    const numChannels = 1;
-    const bytesPerSample = 2;
-    const dataLength = pcm16.length * bytesPerSample;
-    const buffer = new ArrayBuffer(44 + dataLength);
-    const view = new DataView(buffer);
-
-    writeString(view, 0, 'RIFF'); 
-    view.setUint32(4, 36 + dataLength, true); 
-    writeString(view, 8, 'WAVE'); 
-    writeString(view, 12, 'fmt '); 
-    view.setUint32(16, 16, true); 
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
-    view.setUint16(32, numChannels * bytesPerSample, true);
-    view.setUint16(34, 16, true);
-    writeString(view, 36, 'data'); 
-    view.setUint32(40, dataLength, true);
-
-    let offset = 44;
-    for (let i = 0; i < pcm16.length; i++) {
-      view.setInt16(offset, pcm16[i], true);
-      offset += 2;
-    }
-    return new Blob([buffer], {type: 'audio/wav'});
   }
 </script>
 </body>
