@@ -3,513 +3,400 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VoxDrop – Your Anonymous Voice Box</title>
-
-  <!-- Tailwind CSS -->
+  <title>VoxDrop – Anonymous Voice Box</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-
-  <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-  <!-- Puter.js for TTS -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
+  <!-- Puter.js v2 – Official Latest -->
   <script src="https://js.puter.com/v2/"></script>
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: white;
-    }
-    .mic-btn-active {
-      animation: pulse-red 1.5s infinite;
-    }
-    @keyframes pulse-red {
-      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; }
+    .mic-btn-active { animation: pulse-red 1.5s infinite; }
+    @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
   </style>
 </head>
-
 <body class="min-h-screen">
-  <div id="app">
+<div id="app">
 
-    <!-- AUTH SCREEN -->
-    <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
-      <div class="w-full max-w-md">
-        <div class="bg-gray-800/50 backdrop-blur-xl rounded-3xl p-8 border border-gray-700">
-          <h1 class="text-5xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">VoxDrop</h1>
-          <p class="text-gray-400 mb-8">Your anonymous voice box</p>
+  <!-- Auth Screen -->
+  <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <div class="bg-gray-800/50 backdrop-blur-xl rounded-3xl p-8 border border-gray-700">
+        <h1 class="text-5xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">VoxDrop</h1>
+        <p class="text-gray-400 mb-8">Your anonymous voice box</p>
 
-          <!-- Tabs -->
-          <div class="flex gap-4 mb-8 border-b border-gray-700">
-            <button onclick="switchAuthTab('login')" id="loginTab" class="pb-4 font-bold border-b-2 border-pink-500 text-white">Login</button>
-            <button onclick="switchAuthTab('register')" id="registerTab" class="pb-4 font-bold text-gray-400 border-b-2 border-transparent">Create Account</button>
-          </div>
+        <div class="flex gap-4 mb-8 border-b border-gray-700">
+          <button onclick="switchAuthTab('login')" id="loginTab" class="pb-4 font-bold border-b-2 border-pink-500 text-white">Login</button>
+          <button onclick="switchAuthTab('register')" id="registerTab" class="pb-4 font-bold text-gray-400 border-b-2 border-transparent">Create Account</button>
+        </div>
 
-          <!-- Login Form -->
-          <div id="loginForm" class="space-y-4">
-            <input id="loginUsername" type="text" placeholder="Username" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
-            <input id="loginPassword" type="password" placeholder="Password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
-            <button onclick="login()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 rounded-lg font-bold text-lg">Login</button>
-          </div>
+        <div id="loginForm" class="space-y-4">
+          <input id="loginUsername" placeholder="Username" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <input id="loginPassword" type="password" placeholder="Password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <button onclick="login()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 rounded-lg font-bold text-lg">Login</button>
+        </div>
 
-          <!-- Register Form -->
-          <div id="registerForm" class="space-y-4 hidden">
-            <input id="regUsername" type="text" placeholder="Choose username" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
-            <input id="regPassword" type="password" placeholder="Password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
-            <input id="regPassword2" type="password" placeholder="Confirm password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
-            <button onclick="register()" class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-bold text-lg">Create Account</button>
-          </div>
+        <div id="registerForm" class="space-y-4 hidden">
+          <input id="regUsername" placeholder="Choose username" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <input id="regPassword" type="password" placeholder="Password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <input id="regPassword2" type="password" placeholder="Confirm password" class="w-full p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+          <button onclick="register()" class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-bold text-lg">Create Account</button>
         </div>
       </div>
-    </div>
-
-    <!-- MAIN APP -->
-    <div id="mainApp" class="hidden min-h-screen">
-
-      <!-- HEADER -->
-      <div class="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">VoxDrop</h1>
-            <p id="userDisplay" class="text-sm text-gray-400"></p>
-          </div>
-          <div class="flex gap-4 items-center">
-            <button onclick="showTab('inbox')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">Inbox</button>
-            <button onclick="showTab('share')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">My Link</button>
-            <button onclick="logout()" class="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-semibold">Logout</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- INBOX -->
-      <div id="inboxTab" class="max-w-7xl mx-auto p-6">
-        <h2 class="text-4xl font-bold mb-8">Your Voice Box</h2>
-        <div id="messagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        <div id="emptyState" class="text-center py-16 hidden">
-          <p class="text-2xl text-gray-400">No drops yet</p>
-          <p class="text-gray-500 mt-2">Share your link to receive anonymous voice messages</p>
-        </div>
-      </div>
-
-      <!-- SHARE TAB -->
-      <div id="shareTab" class="hidden max-w-7xl mx-auto p-6">
-        <h2 class="text-5xl font-black mb-10 text-center bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">Share Your Anonymous Voice Box</h2>
-        <div class="max-w-2xl mx-auto">
-          <div class="bg-gray-800/60 backdrop-blur-xl rounded-3xl p-10 border border-gray-700 shadow-2xl">
-
-            <p class="text-gray-300 text-center mb-8 text-lg">
-              Anyone with this link can send you a secret voice message.<br>No account needed.
-            </p>
-
-            <!-- Share Link -->
-            <div class="flex gap-4 mb-8">
-              <input 
-                id="shareUrl" 
-                readonly 
-                class="flex-1 px-6 py-4 bg-gray-900/80 border border-gray-600 rounded-2xl text-white font-mono text-lg text-center tracking-wider focus:outline-none focus:border-pink-500 transition"
-                value="">
-              <button onclick="copyShareLink()" class="px-10 py-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-2xl font-bold text-lg shadow-lg transform hover:scale-105 transition">Copy Link</button>
-            </div>
-
-            <!-- QR Code -->
-            <div class="flex justify-center mb-10">
-              <canvas id="qrCanvas" class="rounded-2xl border border-gray-700"></canvas>
-            </div>
-
-            <!-- Social Buttons -->
-            <p class="text-center text-gray-400 mb-6">Share directly</p>
-            <div class="grid grid-cols-3 gap-4">
-              <button onclick="shareToWhatsApp()" class="flex items-center justify-center gap-4 py-4 bg-green-600 hover:bg-green-700 rounded-2xl font-bold text-lg transition transform hover:scale-105">
-                <svg class="w-7 h-7 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                WhatsApp
-              </button>
-              <button onclick="shareToInstagram()" class="py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-2xl font-bold text-lg transition transform hover:scale-105">Instagram</button>
-              <button onclick="shareToTikTok()" class="py-4 bg-black hover:bg-gray-800 rounded-2xl font-bold text-lg transition transform hover:scale-105">TikTok</button>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      <!-- RECORDING TAB -->
-      <div id="recordingTab" class="hidden min-h-screen flex items-center justify-center p-6">
-        <div class="max-w-2xl w-full">
-          <h2 class="text-4xl font-bold text-center mb-2">Drop a voice to</h2>
-          <p class="text-5xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent text-center mb-8" id="targetName"></p>
-
-          <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700 space-y-6">
-
-            <div>
-              <label class="block text-gray-300 mb-3 font-semibold">Avatar</label>
-              <select id="character" class="w-full p-4 rounded-lg bg-gray-700 text-white">
-                <option value="0">Blue Robot</option>
-                <option value="1">Pink Alien</option>
-                <option value="2">Green Monster</option>
-                <option value="3">Yellow Blob</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-gray-300 mb-3 font-semibold">Voice (Puter.js)</label>
-              <select id="voiceSelect" class="w-full p-4 rounded-lg bg-gray-700 text-white">
-                <option value="alloy">Alloy (OpenAI)</option>
-                <option value="echo">Echo</option>
-                <option value="fable">Fable</option>
-                <option value="onyx">Onyx</option>
-                <option value="nova">Nova</option>
-                <option value="shimmer">Shimmer</option>
-                <option value="female" selected>Female (Natural)</option>
-                <option value="male">Male</option>
-              </select>
-            </div>
-
-            <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-700"></canvas>
-
-            <div class="flex flex-col items-center gap-4">
-              <button id="micBtn" class="w-32 h-32 bg-gradient-to-r from-pink-600 to-red-600 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition">
-                <svg class="w-16 h-16" fill="white" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-              </button>
-              <p id="status" class="text-lg text-gray-300 font-semibold">Click to record</p>
-            </div>
-
-            <button onclick="location.href='/'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg">Get Your Own Box</button>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
-  <!-- SCRIPT -->
-  <script>
-    /* ========== AUDIO UNLOCK ========== */
-    const unlock = () => {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      if (ctx.state === 'suspended') ctx.resume();
-      document.removeEventListener('click', unlock);
-      document.removeEventListener('touchstart', unlock);
-    };
-    document.addEventListener('click', unlock);
-    document.addEventListener('touchstart', unlock);
+  <!-- Main App -->
+  <div id="mainApp" class="hidden min-h-screen">
+    <div class="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">VoxDrop</h1>
+          <p id="userDisplay" class="text-sm text-gray-400"></p>
+        </div>
+        <div class="flex gap-4 items-center">
+          <button onclick="showTab('inbox')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">Inbox</button>
+          <button onclick="showTab('share')" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">My Link</button>
+          <button onclick="logout()" class="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-semibold">Logout</button>
+        </div>
+      </div>
+    </div>
 
-    let currentUser = null;
-    let targetUsername = null;
-    let isRecording = false;
-    let recognition = null;
+    <!-- Inbox -->
+    <div id="inboxTab" class="max-w-7xl mx-auto p-6">
+      <h2 class="text-4xl font-bold mb-8">Your Voice Box</h2>
+      <div id="messagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="emptyState" class="text-center py-16">
+        <p class="text-2xl text-gray-400">No drops yet</p>
+        <p class="text-gray-500 mt-2">Share your link to receive anonymous voice messages</p>
+      </div>
+    </div>
 
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    <!-- Share Page – Now Beautiful! -->
+    <div id="shareTab" class="hidden max-w-7xl mx-auto p-6">
+      <h2 class="text-5xl font-black mb-10 text-center bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">
+        Share Your Anonymous Voice Box
+      </h2>
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-gray-800/60 backdrop-blur-xl rounded-3xl p-10 border border-gray-700 shadow-2xl">
+          <p class="text-gray-300 text-center mb-8 text-lg">
+            Anyone with this link can send you a secret voice message.<br>No account needed.
+          </p>
 
-    const characters = [
-      { color: "#60a5fa", eyeY: -30 },
-      { color: "#f472b6", eyeY: -25 },
-      { color: "#34d399", eyeY: -35 },
-      { color: "#fbbf24", eyeY: -20 }
-    ];
+          <div class="flex gap-4 mb-8">
+            <input id="shareUrl" readonly class="flex-1 px-6 py-4 bg-gray-900/80 border border-gray-600 rounded-2xl text-white font-mono text-center text-lg tracking-wider">
+            <button onclick="copyShareLink()" class="px-10 py-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-2xl font-bold text-lg shadow-lg hover:scale-105 transition">
+              Copy Link
+            </button>
+          </div>
 
-    let vol = 0;
+          <div class="flex justify-center mb-10">
+            <canvas id="qrCanvas" class="rounded-2xl border border-gray-700"></canvas>
+          </div>
 
-    function draw(volume = 0) {
-      const char = characters[document.getElementById('character')?.value || 0];
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, 300, 400);
+          <p class="text-center text-gray-400 mb-6">Share directly</p>
+          <div class="grid grid-cols-3 gap-4">
+            <button onclick="shareToWhatsApp()" class="flex items-center justify-center gap-3 py-4 bg-green-600 hover:bg-green-700 rounded-2xl font-bold transition hover:scale-105">
+              WhatsApp
+            </button>
+            <button onclick="shareToInstagram()" class="py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-2xl font-bold transition hover:scale-105">
+              Instagram
+            </button>
+            <button onclick="shareToTikTok()" class="py-4 bg-black hover:bg-gray-800 rounded-2xl font-bold transition hover:scale-105">
+              TikTok
+            </button>
+          </div>
 
-      const scale = 1 + volume * 0.3;
-      ctx.save();
-      ctx.translate(150, 200);
-      ctx.scale(scale, scale);
-
-      // Body
-      ctx.beginPath(); ctx.arc(0, 0, 90, 0, Math.PI*2); ctx.fillStyle = char.color; ctx.fill();
-
-      // Eyes
-      ctx.fillStyle = 'white';
-      ctx.beginPath(); ctx.arc(-35, char.eyeY, 20, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(35, char.eyeY, 20, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = 'black';
-      ctx.beginPath(); ctx.arc(-35, char.eyeY, 10, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(35, char.eyeY, 10, 0, Math.PI*2); ctx.fill();
-
-      // Mouth
-      const mouth = 5 + volume * 70;
-      ctx.beginPath(); ctx.ellipse(0, 40, 50, mouth, 0, 0, Math.PI*2); ctx.fill();
-
-      ctx.restore();
-    }
-
-    function animate() {
-      draw(vol);
-      vol *= 0.93;
-      requestAnimationFrame(animate);
-    }
-    draw(); animate();
-
-    /* ========== SPEECH RECOGNITION ========== */
-    function initRec() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) return null;
-      const r = new SR();
-      r.lang = 'en-US';
-      r.continuous = false;
-      r.interimResults = false;
-      return r;
-    }
-
-    /* ========== AUTH TABS ========== */
-    function switchAuthTab(mode) {
-      const login = document.getElementById('loginForm');
-      const reg = document.getElementById('registerForm');
-      const lt = document.getElementById('loginTab');
-      const rt = document.getElementById('registerTab');
-
-      if (mode === 'login') {
-        login.classList.remove('hidden');
-        reg.classList.add('hidden');
-        lt.classList.add('text-white', 'border-pink-500');
-        lt.classList.remove('text-gray-400');
-        rt.classList.remove('border-pink-500');
-        rt.classList.add('text-gray-400');
-      } else {
-        login.classList.add('hidden');
-        reg.classList.remove('hidden');
-        rt.classList.add('text-white', 'border-pink-500');
-        rt.classList.remove('text-gray-400');
-        lt.classList.remove('border-pink-500');
-        lt.classList.add('text-gray-400');
-      }
-    }
-
-    /* ========== LOGIN / REGISTER ========== */
-    async function login() {
-      const u = document.getElementById('loginUsername').value.trim();
-      const p = document.getElementById('loginPassword').value;
-      if (!u || !p) return alert('Fill all fields');
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({username:u, password:p})
-      });
-      if (res.ok) {
-        currentUser = u;
-        localStorage.setItem('currentUser', u);
-        showLoggedIn();
-      } else alert('Wrong credentials');
-    }
-
-    async function register() {
-      const u = document.getElementById('regUsername').value.trim();
-      const p = document.getElementById('regPassword').value;
-      const p2 = document.getElementById('regPassword2').value;
-      if (!u || !p) return alert('Fill all fields');
-      if (p !== p2) return alert('Passwords do not match');
-
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({username:u, password:p})
-      });
-
-      if (res.ok) {
-        currentUser = u;
-        localStorage.setItem('currentUser', u);
-        showLoggedIn();
-      } else {
-        const err = await res.json();
-        alert(err.error || 'Cannot create account');
-      }
-    }
-
-    function logout() {
-      currentUser = null;
-      localStorage.removeItem('currentUser');
-      location.reload();
-    }
-
-    function showLoggedIn() {
-      document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('userDisplay').textContent = '@' + currentUser;
-      document.getElementById('shareUrl').value = location.origin + '/@' + currentUser;
-      showTab('inbox');
-    }
-
-    function showTab(tab) {
-      document.getElementById('inboxTab').classList.add('hidden');
-      document.getElementById('shareTab').classList.add('hidden');
-      document.getElementById(tab + 'Tab').classList.remove('hidden');
-      if (tab === 'inbox') loadInbox();
-    }
-
-    /* ========== SHARE / COPY / SOCIAL ========== */
-    function copyShareLink() {
-      navigator.clipboard.writeText(document.getElementById('shareUrl').value);
-      alert('Link copied!');
-    }
-    function shareToWhatsApp() {
-      const url = document.getElementById('shareUrl').value;
-      window.open(`https://wa.me/?text=Send%20me%20an%20anonymous%20voice%20drop%21%20${encodeURIComponent(url)}`, '_blank');
-    }
-    function shareToInstagram() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert('Link copied!'); }
-    function shareToTikTok() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert('Link copied!'); }
-
-    /* ========== LOAD INBOX ========== */
-    async function loadInbox() {
-      const res = await fetch('/api/inbox/' + currentUser);
-      const msgs = await res.json();
-      const list = document.getElementById('messagesList');
-      const empty = document.getElementById('emptyState');
-
-      if (!msgs.length) {
-        list.innerHTML = '';
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-
-      list.innerHTML = msgs.map(m => `
-        <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
-          <video controls class="w-full aspect-video bg-black">
-            <source src="${m.videoUrl}" type="video/webm">
-          </video>
-          <div class="p-6">
-            ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
-            <p class="text-xs text-gray-500">${new Date(m.date).toLocaleString()}</p>
-            <div class="grid grid-cols-3 gap-2 mt-4">
-              <button onclick="shareVideo('${m.videoUrl}')" class="py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-bold">WhatsApp</button>
-              <button onclick="shareVideo('${m.videoUrl}')" class="py-2 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold">Instagram</button>
-              <a href="${m.videoUrl}" download class="py-2 bg-blue-600 hover:bg-blue-700 rounded text-center text-sm font-bold">Download</a>
-            </div>
+          <div class="mt-10 text-center">
+            <p class="text-3xl text-gray-400">Total drops received</p>
+            <p id="totalDrops" class="text-6xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent mt-4">0</p>
           </div>
         </div>
-      `).join('');
+      </div>
+    </div>
+  </div>
+
+  <!-- Recording Screen -->
+  <div id="recordingTab" class="hidden min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-2xl w-full">
+      <h2 class="text-4xl font-bold text-center mb-2">Drop a voice to</h2>
+      <p class="text-5xl font-black bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent text-center mb-8" id="targetName"></p>
+
+      <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700 space-y-6">
+        <div>
+          <label class="block text-gray-300 mb-3 font-semibold">Avatar</label>
+          <select id="character" class="w-full p-4 rounded-lg bg-gray-700 text-white">
+            <option value="0">Blue Robot</option>
+            <option value="1">Pink Alien</option>
+            <option value="2">Green Monster</option>
+            <option value="3">Yellow Blob</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-gray-300 mb-3 font-semibold">Voice</label>
+          <select id="voiceSelect" class="w-full p-4 rounded-lg bg-gray-700 text-white">
+            <option value="alloy">Alloy (OpenAI)</option>
+            <option value="echo">Echo</option>
+            <option value="fable">Fable</option>
+            <option value="onyx">Onyx</option>
+            <option value="nova">Nova</option>
+            <option value="shimmer" selected>Shimmer (Best)</option>
+            <option value="Joanna">Joanna (AWS)</option>
+            <option value="21m00Tcm4TlvDq8ikWAM">Rachel (ElevenLabs)</option>
+          </select>
+        </div>
+
+        <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-700"></canvas>
+
+        <div class="flex flex-col items-center gap-4">
+          <button id="micBtn" class="w-32 h-32 bg-gradient-to-r from-pink-600 to-red-600 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition">
+            <svg class="w-16 h-16" fill="white" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+          </button>
+          <p id="status" class="text-lg text-gray-300 font-semibold">Click to record</p>
+        </div>
+
+        <button onclick="location.href='/'" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-bold text-lg">
+          Get Your Own Box
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Unlock audio
+  document.addEventListener('click', () => new AudioContext?.().resume?.(), { once: true });
+
+  let currentUser = null;
+  let targetUsername = null;
+  let isRecording = false;
+  let recognition = null;
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const characters = [
+    { color: "#60a5fa", eyeY: -30 },
+    { color: "#f472b6", eyeY: -25 },
+    { color: "#34d399", eyeY: -35 },
+    { color: "#fbbf24", eyeY: -20 }
+  ];
+
+  function draw(vol = 0) {
+    const c = characters[document.getElementById('character')?.value || 0];
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,300,400);
+    const s = 1 + vol * 0.3;
+    ctx.save(); ctx.translate(150,200); ctx.scale(s,s);
+    ctx.beginPath(); ctx.arc(0,0,90,0,Math.PI*2); ctx.fillStyle = c.color; ctx.fill();
+    ctx.fillStyle = 'white';
+    ['-35','35'].forEach(x => { ctx.beginPath(); ctx.arc(+x,c.eyeY,20,0,Math.PI*2); ctx.fill(); });
+    ctx.fillStyle = 'black';
+    ['-35','35'].forEach(x => { ctx.beginPath(); ctx.arc(+x,c.eyeY,10,0,Math.PI*2); ctx.fill(); });
+    const mouth = 5 + vol*70;
+    ctx.beginPath(); ctx.ellipse(0,40,50,mouth,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  let vol = 0;
+  function animate() { draw(vol); vol *= 0.93; requestAnimationFrame(animate); }
+  animate();
+
+  function initRec() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+    const r = new SR(); r.lang = 'en-US'; r.continuous = false; return r;
+  }
+  recognition = initRec();
+
+  // Auth
+  function switchAuthTab(t) {
+    ['login','register'].forEach(x => {
+      document.getElementById(x+'Form').classList.toggle('hidden', t !== x);
+      document.getElementById(x+'Tab').classList.toggle('text-white', t===x).toggle('text-gray-400', t!==x)
+        .toggle('border-pink-500', t===x).toggle('border-transparent', t!==x);
+    });
+  }
+
+  async function login() {
+    const u = document.getElementById('loginUsername').value.trim();
+    const p = document.getElementById('loginPassword').value;
+    if (!u||!p) return alert('Fill all');
+    const res = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p})});
+    if (res.ok) { currentUser = u; localStorage.currentUser = u; showLoggedIn(); } else alert('Wrong');
+  }
+
+  async function register() {
+    const u = document.getElementById('regUsername').value.trim();
+    const p = document.getElementById('regPassword').value;
+    const p2 = document.getElementById('regPassword2').value;
+    if (!u||!p) return alert('Fill all');
+    if (p !== p2) return alert('Passwords do not match');
+    const res = await fetch('/api/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p})});
+    if (res.ok) { currentUser = u; localStorage.currentUser = u; showLoggedIn(); } else alert('Failed');
+  }
+
+  function logout() { localStorage.removeItem('currentUser'); location.reload(); }
+
+  function showLoggedIn() {
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('userDisplay').textContent = '@'+currentUser;
+    document.getElementById('shareUrl').value = location.origin + '/@' + currentUser;
+    showTab('inbox');
+  }
+
+  function showTab(tab) {
+    document.getElementById('inboxTab').classList.add('hidden');
+    document.getElementById('shareTab').classList.add('hidden');
+    document.getElementById(tab+'Tab').classList.remove('hidden');
+    if (tab === 'inbox') loadInbox();
+    if (tab === 'share') updateSharePage();
+  }
+
+  function updateSharePage() {
+    const url = location.origin + '/@' + currentUser;
+    document.getElementById('shareUrl').value = url;
+    new QRCode(document.getElementById('qrCanvas'), { text: url, width: 200, height: 200, colorDark: "#f472b6", colorLight: "#1e293b" });
+    fetch('/api/inbox/' + currentUser).then(r=>r.json()).then(d=>document.getElementById('totalDrops').textContent = d.length);
+  }
+
+  function copyShareLink() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert('Copied!'); }
+  function shareToWhatsApp() { window.open(`https://wa.me/?text=Send%20me%20a%20secret%20voice%20drop%21%20${encodeURIComponent(document.getElementById('shareUrl').value)}`); }
+  function shareToInstagram() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert('Copied!'); }
+  function shareToTikTok() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert('Copied!'); }
+
+  async function loadInbox() {
+    const res = await fetch('/api/inbox/' + currentUser);
+    const msgs = await res.json();
+    const list = document.getElementById('messagesList');
+    const empty = document.getElementById('emptyState');
+    if (msgs.length===0) { list.innerHTML=''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    list.innerHTML = msgs.map(m=>`
+      <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
+        <video controls class="w-full aspect-video bg-black"><source src="${m.videoUrl}" type="video/webm"></video>
+        <div class="p-6">
+          ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
+          <p class="text-xs text-gray-500">${new Date(m.date).toLocaleString()}</p>
+          <div class="grid grid-cols-3 gap-2 mt-4">
+            <button onclick="shareVideo('${m.videoUrl}')" class="py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-bold">WhatsApp</button>
+            <button onclick="shareVideo('${m.videoUrl}')" class="py-2 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold">Instagram</button>
+            <a href="${m.videoUrl}" download class="py-2 bg-blue-600 hover:bg-blue-700 rounded text-center text-sm font-bold">Download</a>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function shareVideo(url) {
+    try {
+      const r = await fetch(url);
+      const b = await r.blob();
+      const f = new File([b], "voxdrop.webm", {type: "video/webm"});
+      if (navigator.canShare?.({files:[f]})) await navigator.share({files:[f]});
+      else throw 0;
+    } catch { navigator.clipboard.writeText(url); alert('Link copied!'); }
+  }
+
+  // Page load
+  window.onload = () => {
+    const path = location.pathname;
+    if (path.startsWith('/@')) {
+      targetUsername = path.slice(2);
+      document.getElementById('targetName').textContent = '@'+targetUsername;
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('recordingTab').classList.remove('hidden');
+    } else if (localStorage.currentUser) {
+      currentUser = localStorage.currentUser;
+      showLoggedIn();
     }
+  };
 
-    async function shareVideo(url) {
-      try {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        const file = new File([blob], "voxdrop.webm", {type: "video/webm"});
-        if (navigator.canShare && navigator.canShare({files: [file]})) {
-          await navigator.share({files: [file], title: "Voice Drop"});
-        } else throw 0;
-      } catch {
-        navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard!");
-      }
-    }
+  // RECORDING – NOW USING puter.ai.txt2speech() (OFFICIAL 2025 METHOD)
+  document.getElementById('micBtn').onclick = async () => {
+    if (isRecording) return;
+    isRecording = true;
+    const btn = document.getElementById('micBtn');
+    const status = document.getElementById('status');
+    btn.classList.add('mic-btn-active');
+    status.textContent = "Listening...";
 
-    /* ========== PAGE LOAD ========== */
-    window.onload = () => {
-      const path = location.pathname;
-      if (path.startsWith('/@')) {
-        targetUsername = path.slice(2);
-        document.getElementById('targetName').textContent = '@' + targetUsername;
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('recordingTab').classList.remove('hidden');
-        recognition = initRec();
-      } else if (localStorage.getItem('currentUser')) {
-        currentUser = localStorage.getItem('currentUser');
-        showLoggedIn();
-      }
-    };
-
-    /* ========== RECORDING WITH PUTER.JS ========== */
-    document.getElementById('micBtn').onclick = async () => {
-      if (isRecording) return;
-      isRecording = true;
-      document.getElementById('micBtn').classList.add('mic-btn-active');
-      document.getElementById('status').textContent = "Listening...";
-
-      let transcript = "";
-      if (recognition) {
-        transcript = await new Promise(resolve => {
-          recognition.onresult = e => resolve(e.results[0][0].transcript);
-          recognition.onerror = () => resolve("");
-          recognition.onend = () => resolve(transcript);
-          recognition.start();
-        });
-      }
-
-      if (!transcript.trim()) transcript = prompt("Say or type your message:") || "";
-      if (!transcript.trim()) {
-        isRecording = false;
-        document.getElementById('micBtn').classList.remove('mic-btn-active');
-        document.getElementById('status').textContent = "Click to record";
-        return;
-      }
-
-      document.getElementById('status').textContent = "Creating video...";
-      const videoBlob = await createVideoWithPuterTTS(transcript.trim());
-
-      document.getElementById('status').textContent = "Sending...";
-      await send(videoBlob, transcript);
-
-      isRecording = false;
-      document.getElementById('micBtn').classList.remove('mic-btn-active');
-      document.getElementById('status').textContent = "Click to record";
-    };
-
-    async function createVideoWithPuterTTS(text) {
-      return new Promise(async resolve => {
-        const voice = document.getElementById('voiceSelect').value;
-        const audioBlob = await puter.ai.tts(text, { voice });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-
-        const canvasStream = canvas.captureStream(30);
-        const actx = new AudioContext();
-        const source = actx.createMediaElementSource(audio);
-        const dest = actx.createMediaStreamDestination();
-        source.connect(dest);
-        source.connect(actx.destination);
-
-        const mixed = new MediaStream([
-          canvasStream.getVideoTracks()[0],
-          dest.stream.getAudioTracks()[0]
-        ]);
-
-        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' : 'video/webm';
-        const recorder = new MediaRecorder(mixed, {mimeType: mime});
-        const chunks = [];
-
-        recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
-        recorder.onstop = () => {
-          const blob = new Blob(chunks, {type: mime});
-          URL.revokeObjectURL(audioUrl);
-          resolve(blob);
-        };
-
-        let mouth;
-        audio.onplay = () => {
-          mouth = setInterval(() => vol = Math.random()*0.7 + 0.3, 100);
-          recorder.start();
-        };
-        audio.onended = () => {
-          clearInterval(mouth);
-          setTimeout(() => recorder.stop(), 800);
-        };
-
-        audio.play();
+    let text = "";
+    if (recognition) {
+      text = await new Promise(res => {
+        recognition.onresult = e => res(e.results[0][0].transcript);
+        recognition.onerror = () => res("");
+        recognition.onend = () => res(text);
+        recognition.start();
       });
     }
+    if (!text.trim()) text = prompt("Type or say your message:") || "";
+    if (!text.trim()) { isRecording=false; btn.classList.remove('mic-btn-active'); status.textContent="Click to record"; return; }
 
-    async function send(blob, text) {
-      const form = new FormData();
-      form.append('video', blob, 'drop.webm');
-      form.append('transcript', text);
+    status.textContent = "Speaking...";
+    const videoBlob = await createVideoWithPuterTTS(text.trim());
 
-      const res = await fetch(`/api/receive/${targetUsername}`, {method: 'POST', body: form});
-      if (res.ok) {
-        confetti({particleCount: 200, spread: 80});
-        alert("Drop sent!");
-        setTimeout(() => location.href = '/', 1200);
-      } else alert("Send failed");
-    }
-  </script>
+    status.textContent = "Sending...";
+    await sendVideo(videoBlob, text);
 
+    isRecording = false;
+    btn.classList.remove('mic-btn-active');
+    status.textContent = "Click to record";
+  };
+
+  async function createVideoWithPuterTTS(text) {
+    return new Promise(async resolve => {
+      const voice = document.getElementById('voiceSelect').value;
+
+      // NEW OFFICIAL METHOD
+      const audioElement = await puter.ai.txt2speech(text, { voice });
+      audioElement.play();
+
+      const canvasStream = canvas.captureStream(30);
+      const audioCtx = new AudioContext();
+      const source = audioCtx.createMediaElementSource(audioElement);
+      const dest = audioCtx.createMediaStreamDestination();
+      source.connect(dest);
+      source.connect(audioCtx.destination);
+
+      const mixed = new MediaStream([canvasStream.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
+
+      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+      const recorder = new MediaRecorder(mixed, {mimeType: mime});
+      const chunks = [];
+
+      recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, {type: mime});
+        resolve(blob);
+      };
+
+      let interval;
+      audioElement.onplay = () => {
+        interval = setInterval(() => vol = Math.random()*0.7 + 0.3, 100);
+        recorder.start();
+      };
+      audioElement.onended = () => {
+        clearInterval(interval);
+        setTimeout(() => recorder.stop(), 800);
+      };
+    });
+  }
+
+  async function sendVideo(blob, text) {
+    const f = new FormData();
+    f.append('video', blob, 'drop.webm');
+    f.append('transcript', text);
+    const r = await fetch(`/api/receive/${targetUsername}`, {method:'POST', body:f});
+    if (r.ok) {
+      confetti({particleCount:200, spread:80});
+      alert("Drop sent!");
+      setTimeout(() => location.href='/', 1200);
+    } else alert("Failed");
+  }
+</script>
 </body>
 </html>
