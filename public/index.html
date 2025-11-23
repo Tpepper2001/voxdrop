@@ -126,9 +126,8 @@
 </div>
 
 <script>
-  // REPLACE THIS WITH YOUR ACTUAL GEMINI API KEY
+  // CONFIGURATION - Add your Gemini API key here
   const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
 
   let currentUser = null;
   let targetUsername = null;
@@ -352,7 +351,9 @@
       const data = await res.json();
       if (res.ok) {
         document.getElementById('status').textContent = "Hold to record";
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        if (typeof confetti !== 'undefined') {
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
         alert("✨ Drop sent!");
         setTimeout(() => location.href = '/', 1000);
       } else {
@@ -424,16 +425,6 @@
       a.onload = () => r(a.result.split(',')[1]); 
       a.readAsDataURL(b);
     }); 
-  }
-
-  function base64ToArrayBuffer(base64) {
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
   }
 
   function writeString(view, offset, string) {
