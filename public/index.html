@@ -439,14 +439,45 @@
     }
     
     empty.classList.add('hidden');
-    list.innerHTML = msgs.map(function(m) {
-      return '<div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">' +
-        '<video controls class="w-full aspect-video bg-black"><source src="' + m.videoUrl + '" type="video/webm"></video>' +
-        '<div class="p-6">' +
-        (m.transcript ? '<p class="text-gray-300 italic mb-4">"' + m.transcript + '"</p>' : '') +
-        '<p class="text-xs text-gray-500">' + new Date(m.date).toLocaleString() + '</p>' +
-        '</div></div>';
-    }).join('');
+    list.innerHTML = '';
+    
+    msgs.forEach(function(m) {
+      const card = document.createElement('div');
+      card.className = 'bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition';
+      
+      const video = document.createElement('video');
+      video.controls = true;
+      video.className = 'w-full aspect-video bg-black';
+      video.src = m.videoUrl;
+      video.type = 'video/webm';
+      video.preload = 'metadata';
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'p-6';
+      
+      if (m.transcript) {
+        const transcript = document.createElement('p');
+        transcript.className = 'text-gray-300 italic mb-4';
+        transcript.textContent = '"' + m.transcript + '"';
+        contentDiv.appendChild(transcript);
+      }
+      
+      const date = document.createElement('p');
+      date.className = 'text-xs text-gray-500';
+      date.textContent = new Date(m.date).toLocaleString();
+      contentDiv.appendChild(date);
+      
+      const downloadBtn = document.createElement('a');
+      downloadBtn.href = m.videoUrl;
+      downloadBtn.download = 'voxdrop-' + Date.now() + '.webm';
+      downloadBtn.className = 'inline-block mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-bold';
+      downloadBtn.textContent = 'Download Video';
+      contentDiv.appendChild(downloadBtn);
+      
+      card.appendChild(video);
+      card.appendChild(contentDiv);
+      list.appendChild(card);
+    });
   }
 
   function goHome() {
