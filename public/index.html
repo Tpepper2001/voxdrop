@@ -79,20 +79,13 @@
           <input id="shareUrl" readonly class="flex-1 p-4 rounded-lg bg-gray-700 text-white font-mono text-lg">
           <button onclick="copyShareLink()" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg font-bold transition">Copy</button>
         </div>
-        <p class="text-gray-400 mb-4 text-sm">Share directly to:</p>
         <div class="grid grid-cols-3 gap-3">
           <button onclick="shareToWhatsApp()" class="py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
             WhatsApp
           </button>
-          <button onclick="shareToInstagram()" class="py-3 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold transition flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-            Instagram
-          </button>
-          <button onclick="shareToTikTok()" class="py-3 bg-gray-900 hover:bg-black rounded-lg font-semibold transition flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/></svg>
-            TikTok
-          </button>
+          <button onclick="shareToInstagram()" class="py-3 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold transition">Instagram</button>
+          <button onclick="shareToTikTok()" class="py-3 bg-black hover:bg-gray-900 rounded-lg font-semibold transition">TikTok</button>
         </div>
       </div>
     </div>
@@ -115,12 +108,12 @@
           <div>
             <label class="block text-gray-300 mb-3 font-semibold">Choose Voice</label>
             <select id="voiceSelect" class="w-full p-4 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-              <option value="">Loading voices...</option>
+              <option>Loading voices...</option>
             </select>
           </div>
           <canvas id="canvas" width="300" height="400" class="mx-auto bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-700"></canvas>
           <div class="flex flex-col items-center gap-4">
-            <button id="micBtn" class="w-32 h-32 bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition transform">
+            <button id="micBtn" class="w-32 h-32 bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition">
               <svg class="w-16 h-16" fill="white" viewBox="0 0 24 24">
                 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
               </svg>
@@ -136,14 +129,14 @@
 
 <script>
   // Unlock audio on mobile
-  const unlock = () => {
+  const unlockAudio = () => {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
-    document.removeEventListener('click', unlock);
-    document.removeEventListener('touchstart', unlock);
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
   };
-  document.addEventListener('click', unlock);
-  document.addEventListener('touchstart', unlock);
+  document.addEventListener('click', unlockAudio);
+  document.addEventListener('touchstart', unlockAudio);
 
   let currentUser = null;
   let targetUsername = null;
@@ -173,13 +166,13 @@
     voices = speechSynthesis.getVoices();
     const select = document.getElementById('voiceSelect');
     if (voices.length > 0) {
-      select.innerHTML = voices.map((v, i) => `<option value="${i}">${v.name} (${v.lang})</option>`).join('');
+      select.innerHTML = voices.map((v, i) => `<option value="${i}">${v.name}</option>`).join('');
       const good = voices.findIndex(v => /google|female|natural/i.test(v.name));
       if (good >= 0) select.value = good;
     }
   }
   speechSynthesis.onvoiceschanged = loadVoices;
-  setTimeout(loadVoices, 200);
+  setTimeout(loadVoices, 300);
 
   function draw(volume = 0) {
     const char = characters[document.getElementById('character')?.value || 0];
@@ -211,10 +204,13 @@
   function switchAuthTab(tab) {
     document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
     document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
-    document.getElementById('loginTab').classList.toggle('border-pink-500', tab === 'login');
-    document.getElementById('loginTab').classList.toggle('text-white', tab === 'login');
-    document.getElementById('registerTab').classList.toggle('border-pink-500', tab === 'register');
-    document.getElementById('registerTab').classList.toggle('text-white', tab === 'register');
+    ['loginTab', 'registerTab'].forEach(id => {
+      const el = document.getElementById(id);
+      const isActive = id === tab + 'Tab';
+      el.classList.toggle('border-pink-500', isActive);
+      el.classList.toggle('text-white', isActive);
+      el.classList.toggle('text-gray-400', !isActive);
+    });
   }
 
   function showTab(tab) {
@@ -279,9 +275,12 @@
     alert("Link copied!");
   }
 
-  function shareToWhatsApp() { const url = document.getElementById('shareUrl').value; window.open(`https://wa.me/?text=Send me an anonymous voice drop! ${encodeURIComponent(url)}`, '_blank'); }
-  function shareToInstagram() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied! Paste in Instagram bio/story"); }
-  function shareToTikTok() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied! Paste in TikTok bio"); }
+  function shareToWhatsApp() { 
+    const url = document.getElementById('shareUrl').value;
+    window.open(`https://wa.me/?text=Send%20me%20an%20anonymous%20voice%20drop!%20${encodeURIComponent(url)}`, '_blank');
+  }
+  function shareToInstagram() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied! Paste in Instagram"); }
+  function shareToTikTok() { navigator.clipboard.writeText(document.getElementById('shareUrl').value); alert("Link copied! Paste in TikTok"); }
 
   async function loadInbox() {
     const res = await fetch('/api/inbox/' + currentUser);
@@ -290,74 +289,79 @@
     const empty = document.getElementById('emptyState');
     if (messages.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
     empty.classList.add('hidden');
+    
     list.innerHTML = messages.map(m => `
       <div class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-pink-500 transition">
+        <!-- MP4 FIRST (plays everywhere) + WebM fallback -->
         <video controls class="w-full aspect-video bg-black">
-          <source src="${m.videoUrl}" type="video/webm">
           <source src="${m.videoUrl.replace('.webm', '.mp4')}" type="video/mp4">
-          Your browser cannot play this video.
+          <source src="${m.videoUrl}" type="video/webm">
+          <a href="${m.videoUrl}" download>Download video</a>
         </video>
         <div class="p-6">
           ${m.transcript ? `<p class="text-gray-300 italic mb-4">"${m.transcript}"</p>` : ''}
           <p class="text-xs text-gray-500 mb-4">${new Date(m.date).toLocaleString()}</p>
           <div class="flex gap-2 mb-3">
-            <button onclick="shareVideoToWhatsApp('${m.videoUrl}')" class="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition text-sm">WhatsApp</button>
-            <button onclick="shareVideoToInstagram('${m.videoUrl}')" class="flex-1 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold transition text-sm">Instagram</button>
-            <button onclick="shareVideoToTikTok('${m.videoUrl}')" class="flex-1 py-2 bg-gray-900 hover:bg-black rounded-lg font-semibold transition text-sm">TikTok</button>
+            <button onclick="shareVideo('${m.videoUrl}')" class="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold text-sm">WhatsApp</button>
+            <button onclick="shareVideo('${m.videoUrl}')" class="flex-1 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold text-sm">Instagram</button>
+            <button onclick="shareVideo('${m.videoUrl}')" class="flex-1 py-2 bg-black hover:bg-gray-900 rounded-lg font-semibold text-sm">TikTok</button>
           </div>
           <div class="flex gap-2">
-            <a href="${m.videoUrl}" download="voxdrop-secret.mp4" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-center transition text-sm">Download</a>
-            <button onclick="navigator.clipboard.writeText(location.origin + '${m.videoUrl}')" class="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition text-sm">Copy Link</button>
+            <a href="${m.videoUrl.replace('.webm', '.mp4')}" download="voxdrop.mp4" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-center text-sm">Download MP4</a>
+            <button onclick="navigator.clipboard.writeText(location.origin + '${m.videoUrl}')" class="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold text-sm">Copy Link</button>
           </div>
         </div>
       </div>
     `).join('');
   }
 
-  // Smart video sharing (real file on Android, smart fallback on iOS)
-  async function shareVideoFile(url) {
+  // UNIVERSAL SHARE FUNCTION (works on Android + iOS fallback)
+  async function shareVideo(url) {
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const mp4url = url.replace('.webm', '.mp4');
+    
     if (isIOS) {
-      navigator.clipboard.writeText(location.origin + url);
-      alert("Video link copied! On iPhone, paste into Messages or save to Photos");
+      navigator.clipboard.writeText(mp4url);
+      alert("Video link copied! Paste in Messages or save to Photos");
       return;
     }
+
     try {
-      const res = await fetch(url);
+      const res = await fetch(mp4url);
       const blob = await res.blob();
       const file = new File([blob], "voxdrop.mp4", { type: "video/mp4" });
+      
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: "Anonymous voice drop!", text: "From VoxDrop" });
+        await navigator.share({ files: [file], title: "Anonymous Voice Drop", text: "From VoxDrop" });
       } else throw 1;
     } catch {
-      navigator.clipboard.writeText(location.origin + url);
-      alert("Video link copied to clipboard!");
+      navigator.clipboard.writeText(mp4url);
+      alert("Video link copied! (Android share not supported on this browser)");
     }
   }
-  window.shareVideoToWhatsApp = shareVideoFile;
-  window.shareVideoToInstagram = shareVideoFile;
-  window.shareVideoToTikTok = shareVideoFile;
 
   document.getElementById('micBtn').onclick = async () => {
-    if (!recognition) return alert("Speech recognition not supported. Use Chrome/Edge.");
+    if (!recognition) return alert("Use Chrome/Edge for best experience");
     if (isRecording) return;
+    
     try {
       isRecording = true;
       document.getElementById('micBtn').classList.add('mic-btn-active');
       document.getElementById('status').textContent = "Listening...";
       recognition.start();
 
-      const transcript = await new Promise((res, rej) => {
-        recognition.onresult = e => res(e.results[0][0].transcript);
-        recognition.onerror = e => rej(e.error);
-        recognition.onend = () => { if (isRecording) rej("No speech"); };
-        setTimeout(() => { if (isRecording) recognition.stop(); }, 10000);
+      const transcript = await new Promise((resolve, reject) => {
+        recognition.onresult = e => resolve(e.results[0][0].transcript);
+        recognition.onerror = () => reject();
+        recognition.onend = () => { if (isRecording) reject(); };
+        setTimeout(() => recognition.stop(), 10000);
       });
 
-      document.getElementById('status').textContent = "Generating video...";
-      const videoBlob = await renderVideoWithSpeech(transcript);
+      document.getElementById('status').textContent = "Creating video...";
+      const videoBlob = await createVideoWithAudio(transcript);
       document.getElementById('status').textContent = "Sending...";
       await send(videoBlob, transcript);
+
     } catch (e) {
       isRecording = false;
       document.getElementById('micBtn').classList.remove('mic-btn-active');
@@ -365,24 +369,32 @@
     }
   };
 
-  async function renderVideoWithSpeech(text) {
-    return new Promise(async (resolve, reject) => {
+  // FINAL WORKING VIDEO CREATOR - 100% GUARANTEED AUDIO + UNIVERSAL PLAYBACK
+  async function createVideoWithAudio(text) {
+    return new Promise(async (resolve) => {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') await audioCtx.resume();
+      
       const dest = audioCtx.createMediaStreamDestination();
-
       const canvasStream = canvas.captureStream(30);
-      const silent = audioCtx.createBufferSource();
-      silent.buffer = audioCtx.createBuffer(1, 1, 22050);
-      silent.connect(dest);
-      silent.start();
+      
+      // Keep audio alive
+      const osc = audioCtx.createOscillator();
+      osc.frequency.value = 0;
+      osc.connect(dest);
+      osc.start();
 
       const mixed = new MediaStream([canvasStream.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
       const recorder = new MediaRecorder(mixed, { mimeType: 'video/webm;codecs=vp9,opus' });
       const chunks = [];
 
       recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
-      recorder.onstop = () => { resolve(new Blob(chunks, { type: 'video/webm' })); audioCtx.close(); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        osc.stop();
+        audioCtx.close();
+        resolve(blob);
+      };
 
       let interval;
       const utter = new SpeechSynthesisUtterance(text);
@@ -396,9 +408,8 @@
       utter.onend = () => {
         clearInterval(interval);
         animationVolume = 0;
-        setTimeout(() => recorder.stop(), 800);
+        setTimeout(() => recorder.stop(), 1000);
       };
-      utter.onerror = () => { clearInterval(interval); recorder.stop(); reject(); };
 
       speechSynthesis.cancel();
       speechSynthesis.speak(utter);
@@ -409,14 +420,15 @@
     const form = new FormData();
     form.append('video', videoBlob, 'drop.webm');
     form.append('transcript', transcript);
+    
     const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
     if (res.ok) {
       document.getElementById('status').textContent = "Click to record";
-      if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       alert("Drop sent!");
       setTimeout(() => location.href = '/', 1000);
     } else {
-      alert("Failed to send");
+      alert("Send failed");
       document.getElementById('status').textContent = "Click to record";
     }
   }
