@@ -25,8 +25,8 @@
         <p class="text-gray-400 mb-8">Your anonymous voice box</p>
         
         <div id="authTabs" class="flex gap-4 mb-8 border-b border-gray-700">
-          <button onclick="showTab('login')" id="loginTab" class="pb-4 font-bold border-b-2 border-pink-500">Login</button>
-          <button onclick="showTab('register')" id="registerTab" class="pb-4 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-300">Create Account</button>
+          <button onclick="switchAuthTab('login')" id="loginTab" class="pb-4 font-bold border-b-2 border-pink-500">Login</button>
+          <button onclick="switchAuthTab('register')" id="registerTab" class="pb-4 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-300">Create Account</button>
         </div>
 
         <!-- Login Form -->
@@ -126,6 +126,7 @@
 </div>
 
 <script>
+  // REPLACE THIS WITH YOUR ACTUAL GEMINI API KEY
   const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 
@@ -162,23 +163,21 @@
   function animate() { draw(); requestAnimationFrame(animate); }
   animate();
 
-  function showTab(tab) {
-    document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
-    document.getElementById(tab + 'Tab').classList.remove('hidden');
-    
-    document.querySelectorAll('[id$="Tab"]').forEach(btn => btn.classList.remove('border-pink-500', 'text-white'));
-    document.getElementById(tab + 'Tab')?.classList.add('border-pink-500', 'text-white');
-    
-    if (tab === 'inbox') loadInbox();
+  // Auth tab switching (for login/register)
+  function switchAuthTab(tab) {
+    document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+    document.getElementById('loginTab').classList.toggle('border-pink-500', tab === 'login');
+    document.getElementById('loginTab').classList.toggle('text-white', tab === 'login');
+    document.getElementById('loginTab').classList.toggle('text-gray-400', tab !== 'login');
+    document.getElementById('registerTab').classList.toggle('border-pink-500', tab === 'register');
+    document.getElementById('registerTab').classList.toggle('text-white', tab === 'register');
+    document.getElementById('registerTab').classList.toggle('text-gray-400', tab !== 'register');
   }
 
+  // Main app tab switching (for inbox/share)
   function showTab(tab) {
-    if (tab === 'login' || tab === 'register') {
-      document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
-      document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
-      document.getElementById('loginTab').classList.toggle('border-pink-500', tab === 'login');
-      document.getElementById('registerTab').classList.toggle('border-pink-500', tab === 'register');
-    } else if (currentUser) {
+    if (currentUser) {
       document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
       document.getElementById(tab + 'Tab').classList.remove('hidden');
       if (tab === 'inbox') loadInbox();
@@ -335,7 +334,7 @@
       const audioUrl = await synthesize(text);
       
       document.getElementById('status').textContent = "Rendering video...";
-      const videoBlob = await renderVideoWithSynthesized(audioUrl);
+      const videoBlob = await renderVideo(audioUrl);
       await send(videoBlob, text);
     } catch (err) {
       console.error('Processing error:', err);
@@ -352,8 +351,10 @@
       const res = await fetch(`/api/receive/${targetUsername}`, { method: 'POST', body: form });
       const data = await res.json();
       if (res.ok) {
+        document.getElementById('status').textContent = "Hold to record";
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         alert("✨ Drop sent!");
-        location.href = '/';
+        setTimeout(() => location.href = '/', 1000);
       } else {
         alert("Failed to send: " + (data.error || "Unknown error"));
         document.getElementById('status').textContent = "Error: " + (data.error || "Send failed");
@@ -365,7 +366,7 @@
   }
 
   async function transcribe(b64) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ contents: [{ parts: [{text: "Transcribe this audio exactly."}, {inlineData: {mimeType: "audio/webm", data: b64}}]}]})
     });
@@ -375,7 +376,7 @@
   }
 
   async function synthesize(text) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${GEMINI_API_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ 
         contents: [{ parts: [{text}] }], 
